@@ -41,8 +41,22 @@ func (w *WgetValues) Downloader() {
 	CheckError(err)
 	defer file.Close()
 
+	// Reader
+	var reader io.Reader = res.Body
+
+	// Check if rate-limiter was passed & value is greater than 0
+	if w.RateLimitValue > 0 {
+		limiter := &RateLimitedReader{
+			Reader: res.Body,
+			Rate:   int64(w.RateLimitValue),
+			Ticker: time.NewTicker(time.Second),
+		}
+		defer limiter.Ticker.Stop()
+		reader = limiter
+	}
+
 	pr := &ProgressRecoder{
-		Reader:           res.Body,
+		Reader:           reader,
 		Total:            res.ContentLength,
 		ProgressFunction: ShowProgress,
 	}
@@ -56,5 +70,5 @@ func (w *WgetValues) Downloader() {
 		fmt.Println("Download completed at:", time.Now().Format("2006-01-02 15:04:05"))
 		os.Exit(0)
 	}
-	return
+	// return
 }
