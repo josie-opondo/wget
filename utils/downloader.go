@@ -67,7 +67,7 @@ func (w *WgetValues) Downloader() {
 
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Println("Download completed at:", time.Now().Format("2006-01-02 15:04:05"))
+		fmt.Println("\nDownload completed at:", time.Now().Format("2006-01-02 15:04:05"))
 		os.Exit(0)
 	}
 	// return
