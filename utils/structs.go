@@ -32,6 +32,19 @@ type RateLimitedReader struct {
 	Ticker *time.Ticker
 }
 
+// Read implements io.Reader.
+func (r *RateLimitedReader) Read(p []byte) (n int, err error) {
+	toRead := len(p)
+	if int64(toRead) > r.Rate {
+		toRead = int(r.Rate)
+	}
+	n, err = r.Reader.Read(p[:toRead])
+	if n > 0 {
+		<-r.Ticker.C // Wait for the next tick
+	}
+	return n, err
+}
+
 func WgetInstance() *WgetValues {
 	return &WgetValues{
 		BackgroudMode:   false,
