@@ -28,7 +28,6 @@ func (w *WgetValues) Downloader() {
 
 	// Check Background Mode if given
 	if !w.BackgroudMode {
-		fmt.Println("Download started at:")
 		timeStarted := time.Now().Format("2006-01-02 15:04:05")
 		fmt.Println("Started at: ", timeStarted)
 		fmt.Printf("sending request, awaiting response... status %s\n", res.Status)
