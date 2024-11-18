@@ -2,7 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strings"
 )
 
 // ValidateURL checks if a given string is a valid URL
@@ -37,11 +39,15 @@ func (w *WgetValues) FlagsParser(args []string) {
 					w.OutPutDirectory = args[i+1]
 					i++
 				}
-			case "--rate-limit":
-				if i+1 < len(args) {
-					w.RateLimitValue = args[i+1]
-					i++
+			case "--rate-limit=":
+				// Extract the rate limiter value
+				idx := strings.Index(arg, "=")
+				value := strings.Trim(arg[idx+1:], " ")
+				if value == "" {
+					fmt.Println("Usage: --rate-limit=400k || --rate-limit=1M")
+					os.Exit(0)
 				}
+				w.RateLimitValue = value
 			case "--reject":
 				w.Reject = true
 			case "--exclude", "-X":
