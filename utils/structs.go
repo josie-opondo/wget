@@ -1,6 +1,9 @@
 package utils
 
-import "io"
+import (
+	"io"
+	"time"
+)
 
 type ProgressRecoder struct {
 	Reader           io.Reader
@@ -13,7 +16,7 @@ type WgetValues struct {
 	BackgroudMode   bool   // Flag -B
 	OutputFile      string // Flag -O
 	OutPutDirectory string // Flag -P
-	RateLimitValue  string //Flag --rate-limit
+	RateLimitValue  int    //Flag --rate-limit
 	Reject          bool
 	Exclude         string // Flag exclude || -X
 	ConvertLinks    bool   // Flag --convert-links
@@ -21,12 +24,20 @@ type WgetValues struct {
 	Url             string // --- url given
 }
 
+// Rate limiter Struct
+// RateLimitedReader limits the read speed to a specified rate in bytes per second
+type RateLimitedReader struct {
+	Reader io.Reader
+	Rate   int64 // bytes per second
+	Ticker *time.Ticker
+}
+
 func WgetInstance() *WgetValues {
 	return &WgetValues{
 		BackgroudMode:   false,
 		OutputFile:      "",
 		OutPutDirectory: "",
-		RateLimitValue:  "",
+		RateLimitValue:  0,
 		Reject:          false,
 		Exclude:         "",
 		ConvertLinks:    false,
