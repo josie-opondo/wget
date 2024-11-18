@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -18,6 +19,40 @@ func ValidateURL(url string) bool {
 
 	// Check if the URL matches the pattern
 	return re.MatchString(url)
+}
+
+func RateLimitValue(s string) int {
+	if !strings.Contains(s, "k") || strings.Contains(s, "M") {
+		fmt.Println("Invalid rate limit value. \n Usage: --rate-limit=400k || --rate-limit=2M")
+		os.Exit(0)
+	}
+
+	if strings.Contains(s, "k") {
+		ln := len(s) - 1
+		// int value string
+		val := s[:ln]
+		// convert the value to int
+		num, err := strconv.Atoi(val)
+		if err != nil {
+			fmt.Println("Invalid rate limit value")
+			os.Exit(0)
+		}
+		return num * 1024
+	}
+
+	if strings.Contains(s, "M") {
+		ln := len(s) - 1
+		// int value string
+		val := s[:ln]
+		// convert the value to int
+		num, err := strconv.Atoi(val)
+		if err != nil {
+			fmt.Println("Invalid rate limit value")
+			os.Exit(0)
+		}
+		return num * 1024 * 1024
+	}
+	return 0
 }
 
 func (w *WgetValues) FlagsParser(args []string) {
@@ -47,7 +82,7 @@ func (w *WgetValues) FlagsParser(args []string) {
 					fmt.Println("Usage: --rate-limit=400k || --rate-limit=1M")
 					os.Exit(0)
 				}
-				w.RateLimitValue = value
+				w.RateLimitValue = RateLimitValue(value)
 			case "--reject":
 				w.Reject = true
 			case "--exclude", "-X":
