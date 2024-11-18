@@ -2,7 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 // ValidateURL checks if a given string is a valid URL
@@ -18,11 +21,53 @@ func ValidateURL(url string) bool {
 	return re.MatchString(url)
 }
 
+func RateLimitValue(s string) int {
+	if !strings.Contains(s, "k") && !strings.Contains(s, "M") {
+		fmt.Println("Invalid rate limit value.\nUsage: --rate-limit=400k || --rate-limit=2M")
+		os.Exit(0)
+	}
+
+	if strings.Contains(s, "k") {
+		ln := len(s) - 1
+		// int value string
+		val := s[:ln]
+		// convert the value to int
+		num, err := strconv.Atoi(val)
+		if err != nil {
+			fmt.Println("Invalid rate limit value here")
+			os.Exit(0)
+		}
+		return num * 1024
+	}
+
+	if strings.Contains(s, "M") {
+		ln := len(s) - 1
+		// int value string
+		val := s[:ln]
+		// convert the value to int
+		num, err := strconv.Atoi(val)
+		if err != nil {
+			fmt.Println("Invalid rate limit value there")
+			os.Exit(0)
+		}
+		return num * 1024 * 1024
+	}
+	return 0
+}
+
 func (w *WgetValues) FlagsParser(args []string) {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		if ValidateURL(arg) {
 			w.Url = arg
+		} else if strings.Contains(arg, "--rate-limit=") {
+			idx := strings.Index(arg, "=")
+			value := strings.Trim(arg[idx+1:], " ")
+			if value == "" {
+				fmt.Println("Usage: --rate-limit=400k || --rate-limit=1M")
+				os.Exit(0)
+			}
+			w.RateLimitValue = RateLimitValue(value)
 		} else {
 			switch arg {
 			case "-B":
@@ -35,11 +80,6 @@ func (w *WgetValues) FlagsParser(args []string) {
 			case "-P":
 				if i+1 < len(args) {
 					w.OutPutDirectory = args[i+1]
-					i++
-				}
-			case "--rate-limit":
-				if i+1 < len(args) {
-					w.RateLimitValue = args[i+1]
 					i++
 				}
 			case "--reject":
