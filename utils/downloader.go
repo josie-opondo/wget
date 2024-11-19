@@ -77,6 +77,9 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 
 func (w *WgetValues) Downloader() {
 
+	/// Output logging if Background mode is false
+	var log_file string = ""
+
 	// Create HTTP client and set User-Agent
 	client := &http.Client{}
 
@@ -104,6 +107,24 @@ func (w *WgetValues) Downloader() {
 		fmt.Println(cmd_output)
 	}
 
+	if w.BackgroudMode {
+		// create the file and get filename
+		_, name, err := CreateIncrementalFile(".", "wget-log")
+		log_file = name
+
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Printf(`Output will be written to "%s".`, log_file)
+		// log_file
+		if err := os.WriteFile(log_file, []byte(cmd_output), os.ModeAppend); err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
 	// Create the output file
 	CheckError(err)
 	defer file.Close()
@@ -126,7 +147,7 @@ func (w *WgetValues) Downloader() {
 		Reader:           reader,
 		Total:            res.ContentLength,
 		startTime:        time.Now(),
-		ProgressFunction: ShowProgress,
+		ProgressFunction: w.ShowProgress,
 	}
 
 	// Read the response body
@@ -135,10 +156,16 @@ func (w *WgetValues) Downloader() {
 
 	// completed time
 	completed_at := time.Now().Format("2006-01-02 15:04:05")
+	completed_str := fmt.Sprintf("\nDownload completed at: %s", completed_at)
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Println("\nDownload completed at:", completed_at)
+		fmt.Printf(completed_str)
 		os.Exit(0)
+	} else {
+		if err := os.WriteFile(log_file, []byte(completed_str), os.ModeAppend); err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 	// return
 }
