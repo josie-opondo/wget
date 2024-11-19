@@ -16,8 +16,15 @@ func extractFileName(url string) string {
 
 func (w *WgetValues) Downloader() {
 
+	// Create HTTP client and set User-Agent
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", w.Url, nil)
+	CheckError(err)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0")
+
 	// Perform the HTTP GET request
-	res, err := http.Get(w.Url)
+	res, err := client.Do(req)
 	CheckError(err)
 	defer res.Body.Close() // Ensure the body is closed after reading
 
