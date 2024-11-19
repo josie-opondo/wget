@@ -50,7 +50,7 @@ func WgetInstance() *WgetValues {
 	return &WgetValues{
 		BackgroudMode:   false,
 		OutputFile:      "",
-		OutPutDirectory: "",
+		OutPutDirectory: ".",
 		RateLimitValue:  0,
 		Reject:          false,
 		Exclude:         "",
