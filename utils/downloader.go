@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -12,6 +13,66 @@ import (
 func extractFileName(url string) string {
 	idx := strings.LastIndex(url, "/")
 	return url[idx+1:]
+}
+
+// expandPath expands ~ to the user's home directory if it's present in the path.
+func expandPath(path string) (string, error) {
+	if strings.HasPrefix(path, "~") {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %v", err)
+		}
+		return filepath.Join(homeDir, path[1:]), nil
+	}
+	return path, nil
+}
+
+func pathEnding(path string) string {
+	if strings.HasSuffix(path, "/") {
+		return path[:len(path)-1]
+	}
+	return path
+}
+
+// CreateIncrementalFile ensures the directory exists, creates a unique file, and returns the file pointer, its path, and an error if any.
+func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
+	// Expand the path to handle ~
+	expandedDir, err := expandPath(dir)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Resolve the directory to an absolute path
+	absDir, err := filepath.Abs(expandedDir)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to resolve directory path: %v", err)
+	}
+
+	// Ensure the directory exists, create it if necessary
+	if err := os.MkdirAll(absDir, os.ModePerm); err != nil {
+		return nil, "", fmt.Errorf("failed to create directory: %v", err)
+	}
+
+	base := strings.TrimSuffix(filename, filepath.Ext(filename)) // Remove extension
+	ext := filepath.Ext(filename)                                // Get extension
+
+	var fullPath string
+	newFilename := filename
+
+	// Try to create the file with incremental names
+	for i := 1; ; i++ {
+		fullPath = filepath.Join(absDir, newFilename)
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			// File does not exist, attempt to create it
+			file, err := os.Create(fullPath)
+			if err != nil {
+				return nil, "", fmt.Errorf("failed to create file: %v", err)
+			}
+			return file, newFilename, nil
+		}
+		// Increment the filename
+		newFilename = fmt.Sprintf("%s(%d)%s", base, i, ext)
+	}
 }
 
 func (w *WgetValues) Downloader() {
@@ -33,17 +94,17 @@ func (w *WgetValues) Downloader() {
 		w.OutputFile = extractFileName(w.Url)
 	}
 
+	// Create the file and return its address
+	file, filename, err := CreateIncrementalFile(w.OutPutDirectory, w.OutputFile)
+
+	time_stated := time.Now().Format("2006-01-02 15:04:05")
+	cmd_output := fmt.Sprintf("started at: %s\nsending request, awaiting response... status %s\ncontent size: %d [~%.2fMB]\nsaving file to: %s", time_stated, res.Status, res.ContentLength, float64(float64(res.ContentLength)/1048576), (pathEnding(w.OutPutDirectory) + "/" + filename))
 	// Check Background Mode if given
 	if !w.BackgroudMode {
-		timeStarted := time.Now().Format("2006-01-02 15:04:05")
-		fmt.Println("Started at: ", timeStarted)
-		fmt.Printf("sending request, awaiting response... status %s\n", res.Status)
-		fmt.Printf("content size: %d [~%.2fMB]\n", res.ContentLength, float64(float64(res.ContentLength)/1048576))
-		fmt.Printf("saving file to: ./%s\n", w.OutputFile)
+		fmt.Println(cmd_output)
 	}
 
 	// Create the output file
-	file, err := os.Create(w.OutputFile)
 	CheckError(err)
 	defer file.Close()
 
@@ -64,7 +125,7 @@ func (w *WgetValues) Downloader() {
 	pr := &ProgressRecoder{
 		Reader:           reader,
 		Total:            res.ContentLength,
-		startTime: time.Now(),
+		startTime:        time.Now(),
 		ProgressFunction: ShowProgress,
 	}
 
@@ -72,9 +133,11 @@ func (w *WgetValues) Downloader() {
 	_, err = io.Copy(file, pr)
 	CheckError(err)
 
+	// completed time
+	completed_at := time.Now().Format("2006-01-02 15:04:05")
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Println("\nDownload completed at:", time.Now().Format("2006-01-02 15:04:05"))
+		fmt.Println("\nDownload completed at:", completed_at)
 		os.Exit(0)
 	}
 	// return
