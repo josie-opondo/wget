@@ -9,7 +9,8 @@ type ProgressRecoder struct {
 	Reader           io.Reader
 	Total            int64
 	Progress         int64
-	ProgressFunction func(int64, int64)
+	startTime        time.Time
+	ProgressFunction func(int64, int64, time.Time)
 }
 
 type WgetValues struct {

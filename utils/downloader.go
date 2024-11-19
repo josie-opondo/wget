@@ -64,6 +64,7 @@ func (w *WgetValues) Downloader() {
 	pr := &ProgressRecoder{
 		Reader:           reader,
 		Total:            res.ContentLength,
+		startTime: time.Now(),
 		ProgressFunction: ShowProgress,
 	}
 
