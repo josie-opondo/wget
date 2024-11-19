@@ -22,9 +22,9 @@ func size(val float64) string {
 	return fmt.Sprintf("%.0fKiB", val)
 }
 
-func ShowProgress(progress int64, total int64, startTime time.Time) {
+func (w WgetValues) ShowProgress(progress int64, total int64, startTime time.Time) {
 	const length = 50
-	if total <= 0 {
+	if total <= 0 && !w.BackgroudMode {
 		fmt.Printf("\rDownloading...")
 		return
 	}
@@ -44,9 +44,12 @@ func ShowProgress(progress int64, total int64, startTime time.Time) {
 		eta = "--:--:--"
 	}
 
-	out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s/s %s",
-		float64(progress)/1024, float64(total)/1024,
-		strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
-		percent, size(speed/1024), eta)
-	fmt.Printf("\r%s", out)
+	// print the output if background mode is false
+	if !w.BackgroudMode {
+		out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s/s %s",
+			float64(progress)/1024, float64(total)/1024,
+			strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
+			percent, size(speed/1024), eta)
+		fmt.Printf("\r%s", out)
+	}
 }
