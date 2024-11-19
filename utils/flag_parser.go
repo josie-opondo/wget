@@ -68,6 +68,15 @@ func (w *WgetValues) FlagsParser(args []string) {
 				os.Exit(0)
 			}
 			w.RateLimitValue = RateLimitValue(value)
+		} else if strings.Contains(arg, "-P") {
+			idx := strings.Index(arg, "=")
+			value := strings.Trim(arg[idx+1:], " ")
+			
+			if value == "" {
+				fmt.Println("Invalid download path")
+				os.Exit(0)
+			}
+			w.OutPutDirectory = value
 		} else {
 			switch arg {
 			case "-B":
@@ -77,11 +86,7 @@ func (w *WgetValues) FlagsParser(args []string) {
 					w.OutputFile = args[i+1]
 					i++ // Skip the next element as it's the value for -O
 				}
-			case "-P":
-				if i+1 < len(args) {
-					w.OutPutDirectory = args[i+1]
-					i++
-				}
+
 			case "--reject":
 				w.Reject = true
 			case "--exclude", "-X":
