@@ -71,12 +71,21 @@ func (w *WgetValues) FlagsParser(args []string) {
 		} else if strings.Contains(arg, "-P") {
 			idx := strings.Index(arg, "=")
 			value := strings.Trim(arg[idx+1:], " ")
-			
+
 			if value == "" {
 				fmt.Println("Invalid download path")
 				os.Exit(0)
 			}
 			w.OutPutDirectory = value
+		} else if strings.Contains(arg, "--reject=") || strings.Contains(arg, "-R=") {
+			// Parse the --reject flag
+			var rejectValue string
+			if strings.Contains(arg, "--reject=") {
+				rejectValue = strings.TrimPrefix(arg, "--reject=")
+			} else {
+				rejectValue = strings.TrimPrefix(arg, "-R=")
+			}
+			w.RejectSuffixes = strings.Split(rejectValue, ",")
 		} else {
 			switch arg {
 			case "-B":
