@@ -19,10 +19,11 @@ type WgetValues struct {
 	OutPutDirectory string // Flag -P
 	RateLimitValue  int    //Flag --rate-limit
 	Reject          bool
-	Exclude         string // Flag exclude || -X
-	ConvertLinks    bool   // Flag --convert-links
-	Mirror          bool   //Flag --mirror
-	Url             string // --- url given
+	Exclude         string   // Flag exclude || -X
+	ConvertLinks    bool     // Flag --convert-links
+	Mirror          bool     //Flag --mirror
+	Url             string   // --- url given
+	RejectSuffixes  []string // Flag rejects suffixes
 }
 
 // Rate limiter Struct
