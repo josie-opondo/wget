@@ -92,6 +92,15 @@ func (w *WgetValues) Downloader() {
 	CheckError(err)
 	defer res.Body.Close() // Ensure the body is closed after reading
 
+	// Check if the file extension is in the reject list
+	fileExtension := strings.ToLower(filepath.Ext(res.Request.URL.Path))
+	for _, suffix := range w.RejectSuffixes {
+		if strings.EqualFold(fileExtension, "."+suffix) {
+			fmt.Printf("Rejected file with extension: %s\n", fileExtension)
+			return
+		}
+	}
+
 	/// If Output file is not given , extract the given filename from the metadata.
 	if w.OutputFile == "" {
 		w.OutputFile = extractFileName(w.Url)
