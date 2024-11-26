@@ -54,14 +54,8 @@ func pathEnding(path string) string {
 
 // CreateIncrementalFile ensures the directory exists, creates a unique file, and returns the file pointer, its path, and an error if any.
 func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
-	// Expand the path to handle ~
-	expandedDir, err := expandPath(dir)
-	if err != nil {
-		return nil, "", err
-	}
-
 	// Resolve the directory to an absolute path
-	absDir, err := filepath.Abs(expandedDir)
+	absDir, err := filepath.Abs(dir)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to resolve directory path: %v", err)
 	}
@@ -71,8 +65,9 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 		return nil, "", fmt.Errorf("failed to create directory: %v", err)
 	}
 
-	base := strings.TrimSuffix(filename, filepath.Ext(filename)) // Remove extension
-	ext := filepath.Ext(filename)                                // Get extension
+	// Split the filename into name and extension
+	base := strings.TrimSuffix(filename, filepath.Ext(filename)) // Base name without extension
+	ext := filepath.Ext(filename)                                // File extension
 
 	var fullPath string
 	newFilename := filename
@@ -86,10 +81,10 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 			if err != nil {
 				return nil, "", fmt.Errorf("failed to create file: %v", err)
 			}
-			return file, newFilename, nil
+			return file, fullPath, nil
 		}
-		// Increment the filename
-		newFilename = fmt.Sprintf("%s(%d)%s", base, i, ext)
+		// Increment the filename in the correct format
+		newFilename = fmt.Sprintf("%s%s(%d)", base, ext, i)
 	}
 }
 
