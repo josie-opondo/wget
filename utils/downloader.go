@@ -4,15 +4,33 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
 
-func extractFileName(url string) string {
-	idx := strings.LastIndex(url, "/")
-	return url[idx+1:]
+func extractFileName(inputUrl string) string {
+	// Parse the URL to extract its components
+	parsedURL, err := url.Parse(inputUrl)
+	if err != nil || parsedURL.Host == "" {
+		return "default"
+	}
+
+	// Extract the domain (host)
+	domain := parsedURL.Host
+
+	// Replace invalid characters (if any, unlikely in domains)
+	domain = regexp.MustCompile(`[<>:"/\\|?*]`).ReplaceAllString(domain, "_")
+
+	// Enforce a length limit for safety
+	if len(domain) > 100 {
+		domain = domain[:100]
+	}
+
+	return domain
 }
 
 // expandPath expands ~ to the user's home directory if it's present in the path.
