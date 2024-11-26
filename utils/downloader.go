@@ -168,7 +168,7 @@ func (w *WgetValues) Downloader() {
 	completed_str := fmt.Sprintf("\nDownload completed at: %s", completed_at)
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Printf(completed_str)
+		fmt.Println(completed_str)
 		os.Exit(0)
 	} else {
 		if err := os.WriteFile(log_file, []byte(completed_str), os.ModeAppend); err != nil {
