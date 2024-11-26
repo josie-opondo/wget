@@ -106,7 +106,7 @@ func (w *WgetValues) FlagsParser(args []string) {
 			case "--convert-links":
 				w.ConvertLinks = true
 			case "--mirror":
-				w.Mirror = true
+				w.MirrorMode = true
 			default:
 				fmt.Printf("Unknown argument: %s\n", arg)
 				return
