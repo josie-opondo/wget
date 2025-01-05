@@ -68,7 +68,7 @@ func (w *WgetValues) DownloadAndMirror() {
 			// Download each asset
 			for _, asset := range assets {
 				if err := downloadAsset(asset, rootDir); err != nil {
-					fmt.Printf("Failed to download asset %s: %v\n", asset, err)
+					fmt.Printf("Avoiding broken link %s: %v\n", asset, err)
 				}
 			}
 		}
@@ -140,14 +140,14 @@ func normalizeURL(baseURL, relative string) string {
 func downloadAsset(assetURL, rootDir string) error {
 	res, err := http.Get(assetURL)
 	if err != nil {
-		return fmt.Errorf("failed to fetch asset: %v", err)
+		return fmt.Errorf("avoiding broken asset link: %v", err)
 	}
 	defer res.Body.Close()
 
 	// Create directories based on URL path under the root directory
 	parsedURL, err := url.Parse(assetURL)
 	if err != nil {
-		return fmt.Errorf("failed to parse asset URL: %v", err)
+		return fmt.Errorf("broken asset url: %v", err)
 	}
 	assetPath := filepath.Join(rootDir, parsedURL.Path)
 	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
