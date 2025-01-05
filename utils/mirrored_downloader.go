@@ -157,3 +157,24 @@ func downloadAsset(assetURL, outputDir string) error {
 	return err
 }
 
+// saveFile saves the given data to a specified directory and filename.
+func saveFile(basePath, fileName string, data []byte) error {
+	// Create the directory if it doesn't exist
+	err := os.MkdirAll(basePath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// Create the full file path
+	filePath := filepath.Join(basePath, fileName)
+
+	// Write data to the file
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	return err
+}
