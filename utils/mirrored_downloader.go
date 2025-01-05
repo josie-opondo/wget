@@ -14,6 +14,15 @@ import (
 
 // DownloadAndMirror downloads the given URL and its assets recursively.
 func (w *WgetValues) DownloadAndMirror() {
+	websiteName, err := getWebsiteName(w.Url)
+	if err != nil {
+		fmt.Printf("Invalid URL: %v\n", err)
+		return
+	}
+
+	rootDir := filepath.Join(w.OutPutDirectory, websiteName)
+	fmt.Printf("Saving website files under directory: %s\n", rootDir)
+
 	visited := make(map[string]bool) // Track visited URLs
 	queue := []string{w.Url}         // Start with the root URL
 
@@ -45,7 +54,7 @@ func (w *WgetValues) DownloadAndMirror() {
 			}
 
 			// Save the HTML file
-			basePath := extractFileName(currentURL)
+			basePath := filepath.Join(rootDir, extractFileName(currentURL))
 			err = saveFile(basePath, "index.html", htmlData)
 			if err != nil {
 				fmt.Printf("Failed to save file: %v\n", err)
@@ -58,7 +67,7 @@ func (w *WgetValues) DownloadAndMirror() {
 
 			// Download each asset
 			for _, asset := range assets {
-				if err := downloadAsset(asset, w.OutPutDirectory); err != nil {
+				if err := downloadAsset(asset, rootDir); err != nil {
 					fmt.Printf("Failed to download asset %s: %v\n", asset, err)
 				}
 			}
@@ -128,19 +137,19 @@ func normalizeURL(baseURL, relative string) string {
 }
 
 // downloadAsset downloads a single asset and saves it to the output directory.
-func downloadAsset(assetURL, outputDir string) error {
+func downloadAsset(assetURL, rootDir string) error {
 	res, err := http.Get(assetURL)
 	if err != nil {
 		return fmt.Errorf("failed to fetch asset: %v", err)
 	}
 	defer res.Body.Close()
 
-	// Create directories based on URL path
+	// Create directories based on URL path under the root directory
 	parsedURL, err := url.Parse(assetURL)
 	if err != nil {
 		return fmt.Errorf("failed to parse asset URL: %v", err)
 	}
-	assetPath := filepath.Join(outputDir, parsedURL.Path)
+	assetPath := filepath.Join(rootDir, parsedURL.Path)
 	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to create directories: %v", err)
@@ -177,4 +186,13 @@ func saveFile(basePath, fileName string, data []byte) error {
 
 	_, err = file.Write(data)
 	return err
+}
+
+// getWebsiteName extracts the website name from the given URL.
+func getWebsiteName(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid URL: %v", err)
+	}
+	return strings.TrimPrefix(parsedURL.Hostname(), "www."), nil
 }
