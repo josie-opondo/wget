@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -123,5 +125,35 @@ func normalizeURL(baseURL, relative string) string {
 		return ""
 	}
 	return base.ResolveReference(u).String()
+}
+
+// downloadAsset downloads a single asset and saves it to the output directory.
+func downloadAsset(assetURL, outputDir string) error {
+	res, err := http.Get(assetURL)
+	if err != nil {
+		return fmt.Errorf("failed to fetch asset: %v", err)
+	}
+	defer res.Body.Close()
+
+	// Create directories based on URL path
+	parsedURL, err := url.Parse(assetURL)
+	if err != nil {
+		return fmt.Errorf("failed to parse asset URL: %v", err)
+	}
+	assetPath := filepath.Join(outputDir, parsedURL.Path)
+	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create directories: %v", err)
+	}
+
+	// Save the file
+	file, err := os.Create(assetPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %v", err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, res.Body)
+	return err
 }
 
