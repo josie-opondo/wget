@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -110,3 +111,17 @@ func parseHTMLForAssets(baseURL string, htmlData []byte) (assets []string, links
 	extract(doc)
 	return assets, links
 }
+
+// normalizeURL resolves relative URLs against a base URL.
+func normalizeURL(baseURL, relative string) string {
+	u, err := url.Parse(relative)
+	if err != nil {
+		return ""
+	}
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return ""
+	}
+	return base.ResolveReference(u).String()
+}
+
