@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 // DownloadAndMirror downloads the given URL and its assets recursively.
@@ -59,4 +61,52 @@ func (w *WgetValues) DownloadAndMirror() {
 			}
 		}
 	}
+}
+
+// parseHTMLForAssets parses HTML content and extracts asset URLs and links.
+func parseHTMLForAssets(baseURL string, htmlData []byte) (assets []string, links []string) {
+	doc, err := html.Parse(strings.NewReader(string(htmlData)))
+	if err != nil {
+		fmt.Printf("Failed to parse HTML: %v\n", err)
+		return nil, nil
+	}
+
+	var extract func(*html.Node)
+	extract = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			var link string
+			switch n.Data {
+			case "link", "img", "script":
+				for _, attr := range n.Attr {
+					if attr.Key == "href" || attr.Key == "src" {
+						link = attr.Val
+					}
+				}
+			case "a":
+				for _, attr := range n.Attr {
+					if attr.Key == "href" {
+						link = attr.Val
+					}
+				}
+			}
+
+			// Normalize the link
+			if link != "" {
+				fullURL := normalizeURL(baseURL, link)
+				if strings.Contains(fullURL, baseURL) {
+					links = append(links, fullURL) // Add internal links for recursion
+				} else {
+					assets = append(assets, fullURL) // Treat external links as assets
+				}
+			}
+		}
+
+		// Recursively process child nodes
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			extract(c)
+		}
+	}
+
+	extract(doc)
+	return assets, links
 }
