@@ -86,6 +86,8 @@ func (w *WgetValues) FlagsParser(args []string) {
 				rejectValue = strings.TrimPrefix(arg, "-R=")
 			}
 			w.RejectSuffixes = strings.Split(rejectValue, ",")
+		} else if strings.Contains(arg, "--mirror") {
+			w.MirrorMode = true
 		} else {
 			switch arg {
 			case "-B":
@@ -111,6 +113,11 @@ func (w *WgetValues) FlagsParser(args []string) {
 				fmt.Printf("Unknown argument: %s\n", arg)
 				return
 			}
+		}
+
+
+		if w.MirrorMode {
+			w.DownloadAndMirror()
 		}
 	}
 }
