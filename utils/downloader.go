@@ -4,33 +4,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 )
 
-func extractFileName(inputUrl string) string {
-	// Parse the URL to extract its components
-	parsedURL, err := url.Parse(inputUrl)
-	if err != nil || parsedURL.Host == "" {
-		return "default"
-	}
-
-	// Extract the domain (host)
-	domain := parsedURL.Host
-
-	// Replace invalid characters (if any, unlikely in domains)
-	domain = regexp.MustCompile(`[<>:"/\\|?*]`).ReplaceAllString(domain, "_")
-
-	// Enforce a length limit for safety
-	if len(domain) > 100 {
-		domain = domain[:100]
-	}
-
-	return domain
+func extractFileName(url string) string {
+	idx := strings.LastIndex(url, "/")
+	return url[idx+1:]
 }
 
 // expandPath expands ~ to the user's home directory if it's present in the path.
@@ -54,8 +36,14 @@ func pathEnding(path string) string {
 
 // CreateIncrementalFile ensures the directory exists, creates a unique file, and returns the file pointer, its path, and an error if any.
 func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
+	// Expand the path to handle ~
+	expandedDir, err := expandPath(dir)
+	if err != nil {
+		return nil, "", err
+	}
+
 	// Resolve the directory to an absolute path
-	absDir, err := filepath.Abs(dir)
+	absDir, err := filepath.Abs(expandedDir)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to resolve directory path: %v", err)
 	}
@@ -65,9 +53,8 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 		return nil, "", fmt.Errorf("failed to create directory: %v", err)
 	}
 
-	// Split the filename into name and extension
-	base := strings.TrimSuffix(filename, filepath.Ext(filename)) // Base name without extension
-	ext := filepath.Ext(filename)                                // File extension
+	base := strings.TrimSuffix(filename, filepath.Ext(filename)) // Remove extension
+	ext := filepath.Ext(filename)                                // Get extension
 
 	var fullPath string
 	newFilename := filename
@@ -81,10 +68,10 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 			if err != nil {
 				return nil, "", fmt.Errorf("failed to create file: %v", err)
 			}
-			return file, fullPath, nil
+			return file, newFilename, nil
 		}
-		// Increment the filename in the correct format
-		newFilename = fmt.Sprintf("%s%s(%d)", base, ext, i)
+		// Increment the filename
+		newFilename = fmt.Sprintf("%s(%d)%s", base, i, ext)
 	}
 }
 
@@ -107,15 +94,6 @@ func (w *WgetValues) Downloader() {
 	res, err := client.Do(req)
 	CheckError(err)
 	defer res.Body.Close() // Ensure the body is closed after reading
-
-	// Check if the file extension is in the reject list
-	fileExtension := strings.ToLower(filepath.Ext(res.Request.URL.Path))
-	for _, suffix := range w.RejectSuffixes {
-		if strings.EqualFold(fileExtension, "."+suffix) {
-			fmt.Printf("Rejected file with extension: %s\n", fileExtension)
-			return
-		}
-	}
 
 	/// If Output file is not given , extract the given filename from the metadata.
 	if w.OutputFile == "" {
@@ -181,10 +159,10 @@ func (w *WgetValues) Downloader() {
 
 	// completed time
 	completed_at := time.Now().Format("2006-01-02 15:04:05")
-	completed_str := fmt.Sprintf("\nDownload completed at: %s", completed_at)
+	completed_str := fmt.Sprintf("\nDownload completed at: %s\n", completed_at)
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Println(completed_str)
+		fmt.Printf(completed_str)
 		os.Exit(0)
 	} else {
 		if err := os.WriteFile(log_file, []byte(completed_str), os.ModeAppend); err != nil {
