@@ -24,6 +24,7 @@ type WgetValues struct {
 	MirrorMode      bool     //Flag --mirror
 	MirrorStarted   bool	 // --mirror start time
 	RequestSend     bool    // Request initiated
+	LastOutput      string 	// Last terminal output
 	Url             string   // --- url given
 	RejectSuffixes  []string // Flag rejects suffixes
 }
@@ -61,5 +62,6 @@ func WgetInstance() *WgetValues {
 		MirrorMode:      false,
 		MirrorStarted:   false,
 		RequestSend:     false,
+		LastOutput:      " ",
 	}
 }

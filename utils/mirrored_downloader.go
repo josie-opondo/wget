@@ -71,7 +71,12 @@ func (w *WgetValues) DownloadAndMirror() {
 				continue
 			}
 
-			fmt.Printf("saving website files to: %s\n", rootDir)
+			// Only print if last output does not match and there's no new line
+            if !strings.Contains(w.LastOutput, "saving website files") {
+				output := fmt.Sprintf("saving website files to: %s", rootDir)
+				fmt.Printf("%s\n", output)
+                w.LastOutput = output
+            }
 
 			// Save the HTML file
 			err = saveFile(rootDir, "index.html", htmlData)
@@ -93,7 +98,7 @@ func (w *WgetValues) DownloadAndMirror() {
 		}
 	}
 
-    fmt.Printf("Download completed at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Printf("\nDownload completed at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 }
 
 // downloadAssetWithProgress downloads a single asset and saves it to the output directory with progress.
