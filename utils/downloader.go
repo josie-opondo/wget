@@ -78,6 +78,7 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 func (w *WgetValues) Downloader() {
 	if w.MirrorMode {
 		w.DownloadAndMirror()
+		return
 	}
 
 	/// Output logging if Background mode is false
