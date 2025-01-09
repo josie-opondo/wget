@@ -8,11 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 )
 
-// DownloadAndMirror downloads the given URL and its assets recursively.
+// DownloadAndMirror downloads the given URL and its assets recursively, with progress.
 func (w *WgetValues) DownloadAndMirror() {
 	websiteName, err := getWebsiteName(w.Url)
 	if err != nil {
@@ -20,11 +21,17 @@ func (w *WgetValues) DownloadAndMirror() {
 		return
 	}
 
+	// Start time
+	startTime := time.Now()
+	fmt.Printf("started at: %s\n", startTime.Format("2006-01-02 15:04:05"))
+
+
 	rootDir := filepath.Join(w.OutPutDirectory, websiteName)
-	fmt.Printf("Saving website files under directory: %s\n", rootDir)
 
 	visited := make(map[string]bool) // Track visited URLs
 	queue := []string{w.Url}         // Start with the root URL
+
+	// Start time
 
 	for len(queue) > 0 {
 		currentURL := queue[0]
@@ -39,19 +46,23 @@ func (w *WgetValues) DownloadAndMirror() {
 		// Fetch the page
 		res, err := http.Get(currentURL)
 		if err != nil {
-			fmt.Printf("Failed to fetch %s: %v\n", currentURL, err)
 			continue
 		}
 		defer res.Body.Close()
+
+		// Print response status
+		fmt.Printf("sending request, awaiting response... status %s\n", res.Status)
 
 		// Parse HTML if content is text/html
 		contentType := res.Header.Get("Content-Type")
 		if strings.Contains(contentType, "text/html") {
 			htmlData, err := io.ReadAll(res.Body)
 			if err != nil {
-				fmt.Printf("Failed to read response body: %v\n", err)
+				fmt.Printf("corrupted response body: %v\n", err)
 				continue
 			}
+
+			fmt.Printf("Saving website files under directory: %s\n", rootDir)
 
 			// Save the HTML file
 			basePath := filepath.Join(rootDir, extractFileName(currentURL))
@@ -65,14 +76,124 @@ func (w *WgetValues) DownloadAndMirror() {
 			assets, newLinks := parseHTMLForAssets(currentURL, htmlData)
 			queue = append(queue, newLinks...)
 
-			// Download each asset
+			// Download each asset with progress reporting
 			for _, asset := range assets {
-				if err := downloadAsset(asset, rootDir); err != nil {
+				if err := downloadAssetWithProgress(asset, rootDir); err != nil {
 					fmt.Printf("Avoiding broken link %s: %v\n", asset, err)
 				}
 			}
 		}
 	}
+}
+
+// downloadAssetWithProgress downloads a single asset and saves it to the output directory with progress.
+func downloadAssetWithProgress(assetURL, rootDir string) error {
+	res, err := http.Get(assetURL)
+	if err != nil {
+		return fmt.Errorf("avoiding broken asset link: %v", err)
+	}
+	defer res.Body.Close()
+
+	// Get the asset's size
+	contentLength := res.ContentLength
+	if contentLength == -1 {
+		contentLength = 0 // Unknown size, handle progress differently
+	}
+
+	// Create directories based on URL path under the root directory
+	parsedURL, err := url.Parse(assetURL)
+	if err != nil {
+		return fmt.Errorf("broken asset url: %v", err)
+	}
+	assetPath := filepath.Join(rootDir, parsedURL.Path)
+	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create directories: %v", err)
+	}
+
+	// Save the file with progress
+	file, err := os.Create(assetPath)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %v", err)
+	}
+	defer file.Close()
+
+	// Use a progress writer to track download progress
+	progressWriter := &ProgressWriter{Total: contentLength, File: file}
+	_, err = io.Copy(progressWriter, res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to write asset file: %v", err)
+	}
+
+	return nil
+}
+
+// ProgressWriter is an io.Writer that tracks the progress of a download.
+type ProgressWriter struct {
+	Total       int64
+	Downloaded  int64
+	File        *os.File
+	LastPrinted float64
+}
+
+func (pw *ProgressWriter) Write(p []byte) (n int, err error) {
+	n, err = pw.File.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	// Track downloaded bytes
+	pw.Downloaded += int64(n)
+
+	// Print progress only when the percentage changes
+	if pw.Total > 0 {
+		progress := float64(pw.Downloaded) / float64(pw.Total) * 100
+		if progress != pw.LastPrinted {
+			// Format download sizes and progress
+			downloadedStr := formatSize(float64(pw.Downloaded))
+			totalStr := formatSize(float64(pw.Total))
+			progressBar := createProgressBar(progress)
+
+			// Print in the expected format
+			fmt.Printf("\r%s / %s [%s] %.2f%%", downloadedStr, totalStr, progressBar, progress)
+			pw.LastPrinted = progress
+		}
+	} else {
+		// For unknown sizes, print bytes downloaded
+		fmt.Printf("\rDownloaded: %d bytes", pw.Downloaded)
+		
+		// End time
+		endTime := time.Now()
+		fmt.Printf("\nDownload completed at: %s\n", endTime.Format("2006-01-02 15:04:05"))
+	}
+
+	return n, nil
+}
+
+// createProgressBar creates a simple text-based progress bar.
+func createProgressBar(percentage float64) string {
+	barLength := 50
+	progress := int(percentage / 100 * float64(barLength))
+	return strings.Repeat("=", progress) + strings.Repeat(" ", barLength-progress)
+}
+
+// formatSize formats the byte size into human-readable format (e.g., KiB, MiB).
+func formatSize(size float64) string {
+	var unit string
+	var formattedSize float64
+
+	if size < 1024 {
+		unit = "B"
+		formattedSize = size
+	} else if size < 1024*1024 {
+		unit = "KiB"
+		formattedSize = size / 1024
+	} else {
+		unit = "MiB"
+		formattedSize = size / (1024 * 1024)
+	}
+
+	return fmt.Sprintf("%.2f %s", formattedSize, unit)
 }
 
 // parseHTMLForAssets parses HTML content and extracts asset URLs and links.
@@ -134,36 +255,6 @@ func normalizeURL(baseURL, relative string) string {
 		return ""
 	}
 	return base.ResolveReference(u).String()
-}
-
-// downloadAsset downloads a single asset and saves it to the output directory.
-func downloadAsset(assetURL, rootDir string) error {
-	res, err := http.Get(assetURL)
-	if err != nil {
-		return fmt.Errorf("avoiding broken asset link: %v", err)
-	}
-	defer res.Body.Close()
-
-	// Create directories based on URL path under the root directory
-	parsedURL, err := url.Parse(assetURL)
-	if err != nil {
-		return fmt.Errorf("broken asset url: %v", err)
-	}
-	assetPath := filepath.Join(rootDir, parsedURL.Path)
-	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create directories: %v", err)
-	}
-
-	// Save the file
-	file, err := os.Create(assetPath)
-	if err != nil {
-		return fmt.Errorf("failed to create file: %v", err)
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, res.Body)
-	return err
 }
 
 // saveFile saves the given data to a specified directory and filename.
