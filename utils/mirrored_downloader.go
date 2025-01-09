@@ -79,7 +79,7 @@ func (w *WgetValues) DownloadAndMirror() {
 
 			// Download each asset with progress reporting
 			for _, asset := range assets {
-				if err := downloadAssetWithProgress(asset, rootDir); err != nil {
+				if err := w.downloadAssetWithProgress(asset, rootDir); err != nil {
 					fmt.Printf("Avoiding broken link %s: %v\n", asset, err)
 				}
 			}
@@ -88,12 +88,15 @@ func (w *WgetValues) DownloadAndMirror() {
 }
 
 // downloadAssetWithProgress downloads a single asset and saves it to the output directory with progress.
-func downloadAssetWithProgress(assetURL, rootDir string) error {
+func(w *WgetValues) downloadAssetWithProgress(assetURL, rootDir string) error {
 	res, err := http.Get(assetURL)
 	if err != nil {
 		return fmt.Errorf("avoiding broken asset link: %v", err)
 	}
 	defer res.Body.Close()
+
+	// Reader
+	var reader io.Reader = res.Body
 
 	// Get the asset's size
 	contentLength := res.ContentLength
@@ -119,82 +122,22 @@ func downloadAssetWithProgress(assetURL, rootDir string) error {
 	}
 	defer file.Close()
 
-	// Use a progress writer to track download progress
-	progressWriter := &ProgressWriter{Total: contentLength, File: file}
-	_, err = io.Copy(progressWriter, res.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write asset file: %v", err)
+	pr := &ProgressRecoder{
+		Reader:           reader,
+		Total:            contentLength,
+		startTime:        time.Now(),
+		ProgressFunction: w.ShowProgress,
 	}
+
+	// Read the response body
+	_, err = io.Copy(file, pr)
+	CheckError(err)
+
+	// End time
+	endTime := time.Now()
+	fmt.Printf("\nDownload completed at: %s\n", endTime.Format("2006-01-02 15:04:05"))
 
 	return nil
-}
-
-// ProgressWriter is an io.Writer that tracks the progress of a download.
-type ProgressWriter struct {
-	Total       int64
-	Downloaded  int64
-	File        *os.File
-	LastPrinted float64
-}
-
-func (pw *ProgressWriter) Write(p []byte) (n int, err error) {
-	n, err = pw.File.Write(p)
-	if err != nil {
-		return n, err
-	}
-
-	// Track downloaded bytes
-	pw.Downloaded += int64(n)
-
-	// Print progress only when the percentage changes
-	if pw.Total > 0 {
-		progress := float64(pw.Downloaded) / float64(pw.Total) * 100
-		if progress != pw.LastPrinted {
-			// Format download sizes and progress
-			downloadedStr := formatSize(float64(pw.Downloaded))
-			totalStr := formatSize(float64(pw.Total))
-			progressBar := createProgressBar(progress)
-
-			// Print in the expected format
-			fmt.Printf("\r%s / %s [%s] %.2f%%", downloadedStr, totalStr, progressBar, progress)
-			pw.LastPrinted = progress
-		}
-	} else {
-		// For unknown sizes, print bytes downloaded
-		fmt.Printf("\rDownloaded: %d bytes", pw.Downloaded)
-		
-		// End time
-		endTime := time.Now()
-		fmt.Printf("\nDownload completed at: %s\n", endTime.Format("2006-01-02 15:04:05"))
-	}
-
-	return n, nil
-}
-
-// createProgressBar creates a simple text-based progress bar.
-func createProgressBar(percentage float64) string {
-	barLength := 50
-	progress := int(percentage / 100 * float64(barLength))
-	return strings.Repeat("=", progress) + strings.Repeat(" ", barLength-progress)
-}
-
-// formatSize formats the byte size into human-readable format (e.g., KiB, MiB).
-func formatSize(size float64) string {
-	var unit string
-	var formattedSize float64
-
-	if size < 1024 {
-		unit = "B"
-		formattedSize = size
-	} else if size < 1024*1024 {
-		unit = "KiB"
-		formattedSize = size / 1024
-	} else {
-		unit = "MiB"
-		formattedSize = size / (1024 * 1024)
-	}
-
-	return fmt.Sprintf("%.2f %s", formattedSize, unit)
 }
 
 // parseHTMLForAssets parses HTML content and extracts asset URLs and links.

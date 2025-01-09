@@ -25,7 +25,7 @@ func size(val float64) string {
 func (w WgetValues) ShowProgress(progress int64, total int64, startTime time.Time) {
 	const length = 50
 	if total <= 0 && !w.BackgroudMode {
-		fmt.Printf("\rDownloading...")
+		fmt.Printf("\rDownloading...\n")
 		return
 	}
 	percent := float64(progress) / float64(total) * 100
