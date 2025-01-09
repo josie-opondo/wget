@@ -22,9 +22,12 @@ func (w *WgetValues) DownloadAndMirror() {
 	}
 
 	// Start time
-	startTime := time.Now()
-	fmt.Printf("started at: %s\n", startTime.Format("2006-01-02 15:04:05"))
+	if !w.MirrorStarted {
+		startTime := time.Now()
+		fmt.Printf("started at: %s\n", startTime.Format("2006-01-02 15:04:05"))
 
+		w.MirrorStarted = true
+	}
 
 	rootDir := filepath.Join(w.OutPutDirectory, websiteName)
 
