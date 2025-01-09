@@ -66,8 +66,7 @@ func (w *WgetValues) DownloadAndMirror() {
 			fmt.Printf("saving website files to: %s\n", rootDir)
 
 			// Save the HTML file
-			basePath := filepath.Join(rootDir, extractFileName(currentURL))
-			err = saveFile(basePath, "index.html", htmlData)
+			err = saveFile(rootDir, "index.html", htmlData)
 			if err != nil {
 				fmt.Printf("Failed to save file: %v\n", err)
 				continue
