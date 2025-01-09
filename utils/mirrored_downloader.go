@@ -36,7 +36,7 @@ func (w *WgetValues) DownloadAndMirror() {
 
 	for len(queue) > 0 {
 		currentURL := queue[0]
-		queue = queue[1:] // Dequeue the first URL
+		queue = queue[1:]
 
 		// Skip if already visited
 		if visited[currentURL] {
@@ -98,7 +98,7 @@ func downloadAssetWithProgress(assetURL, rootDir string) error {
 	// Get the asset's size
 	contentLength := res.ContentLength
 	if contentLength == -1 {
-		contentLength = 0 // Unknown size, handle progress differently
+		contentLength = 0
 	}
 
 	// Create directories based on URL path under the root directory
