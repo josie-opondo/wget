@@ -29,12 +29,10 @@ func (w *WgetValues) DownloadAndMirror() {
 		w.MirrorStarted = true
 	}
 
-	rootDir := filepath.Join(w.OutPutDirectory, websiteName)
+	rootDir := filepath.Join(w.OutPutDirectory, "www." + websiteName)
 
-	visited := make(map[string]bool) // Track visited URLs
-	queue := []string{w.Url}         // Start with the root URL
-
-	// Start time
+	visited := make(map[string]bool)
+	queue := []string{w.Url}
 
 	for len(queue) > 0 {
 		currentURL := queue[0]
@@ -65,7 +63,7 @@ func (w *WgetValues) DownloadAndMirror() {
 				continue
 			}
 
-			fmt.Printf("Saving website files under directory: %s\n", rootDir)
+			fmt.Printf("saving website files to: %s\n", rootDir)
 
 			// Save the HTML file
 			basePath := filepath.Join(rootDir, extractFileName(currentURL))
