@@ -114,10 +114,5 @@ func (w *WgetValues) FlagsParser(args []string) {
 				return
 			}
 		}
-
-
-		if w.MirrorMode {
-			w.DownloadAndMirror()
-		}
 	}
 }
