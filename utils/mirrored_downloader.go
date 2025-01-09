@@ -57,7 +57,10 @@ func (w *WgetValues) DownloadAndMirror() {
 		defer res.Body.Close()
 
 		// Print response status
-		fmt.Printf("sending request, awaiting response... status %s\n", res.Status)
+		if !w.RequestSend {
+			fmt.Printf("sending request, awaiting response... status %s\n", res.Status)
+			w.RequestSend = true
+		}
 
 		// Parse HTML if content is text/html
 		contentType := res.Header.Get("Content-Type")
