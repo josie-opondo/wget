@@ -15,6 +15,11 @@ import (
 
 // DownloadAndMirror downloads the given URL and its assets recursively, with progress.
 func (w *WgetValues) DownloadAndMirror() {
+	// Ensure url is valid
+	if !ValidateURL(w.Url) {
+		return
+	}
+
 	websiteName, err := getWebsiteName(w.Url)
 	if err != nil {
 		fmt.Printf("Invalid URL: %v\n", err)
@@ -79,7 +84,7 @@ func (w *WgetValues) DownloadAndMirror() {
 			// Download each asset with progress reporting
 			for _, asset := range assets {
 				if err := w.downloadAssetWithProgress(asset, rootDir); err != nil {
-					fmt.Printf("Avoiding broken link %s: %v\n", asset, err)
+					fmt.Println("Avoiding broken link...")
 				}
 			}
 		}
