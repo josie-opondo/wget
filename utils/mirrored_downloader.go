@@ -92,59 +92,52 @@ func (w *WgetValues) DownloadAndMirror() {
 			}
 		}
 	}
+
+    fmt.Printf("\nDownload completed at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 }
 
 // downloadAssetWithProgress downloads a single asset and saves it to the output directory with progress.
-func(w *WgetValues) downloadAssetWithProgress(assetURL, rootDir string) error {
-	res, err := http.Get(assetURL)
-	if err != nil {
-		return fmt.Errorf("avoiding broken asset link: %v", err)
-	}
-	defer res.Body.Close()
+func (w *WgetValues) downloadAssetWithProgress(assetURL, rootDir string) error {
+    res, err := http.Get(assetURL)
+    if err != nil {
+        return fmt.Errorf("avoiding broken asset link: %v", err)
+    }
+    defer res.Body.Close()
 
-	// Reader
-	var reader io.Reader = res.Body
+    var reader io.Reader = res.Body
 
-	// Get the asset's size
-	contentLength := res.ContentLength
-	if contentLength == -1 {
-		contentLength = 0
-	}
+    contentLength := res.ContentLength
+    if contentLength == -1 {
+        contentLength = 0
+    }
 
-	// Create directories based on URL path under the root directory
-	parsedURL, err := url.Parse(assetURL)
-	if err != nil {
-		return fmt.Errorf("broken asset url: %v", err)
-	}
-	assetPath := filepath.Join(rootDir, parsedURL.Path)
-	err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create directories: %v", err)
-	}
+    parsedURL, err := url.Parse(assetURL)
+    if err != nil {
+        return fmt.Errorf("broken asset url: %v", err)
+    }
+    assetPath := filepath.Join(rootDir, parsedURL.Path)
+    err = os.MkdirAll(filepath.Dir(assetPath), os.ModePerm)
+    if err != nil {
+        return fmt.Errorf("failed to create directories: %v", err)
+    }
 
-	// Save the file with progress
-	file, err := os.Create(assetPath)
-	if err != nil {
-		return fmt.Errorf("failed to create file: %v", err)
-	}
-	defer file.Close()
+    file, err := os.Create(assetPath)
+    if err != nil {
+        return fmt.Errorf("failed to create file: %v", err)
+    }
+    defer file.Close()
 
-	pr := &ProgressRecoder{
-		Reader:           reader,
-		Total:            contentLength,
-		startTime:        time.Now(),
-		ProgressFunction: w.ShowProgress,
-	}
+    pr := &ProgressRecoder{
+        Reader:           reader,
+        Total:            contentLength,
+        startTime:        time.Now(),
+        ProgressFunction: w.ShowProgress,
+    }
 
-	// Read the response body
-	_, err = io.Copy(file, pr)
-	CheckError(err)
+    _, err = io.Copy(file, pr)
+    CheckError(err)
 
-	// End time
-	endTime := time.Now()
-	fmt.Printf("\nDownload completed at: %s\n", endTime.Format("2006-01-02 15:04:05"))
-
-	return nil
+    return nil
 }
 
 // parseHTMLForAssets parses HTML content and extracts asset URLs and links.
