@@ -87,7 +87,7 @@ func (w *WgetValues) DownloadAndMirror() {
 			// Download each asset with progress reporting
 			for _, asset := range assets {
 				if err := w.downloadAssetWithProgress(asset, rootDir); err != nil {
-					fmt.Println("Avoiding broken link...")
+					continue
 				}
 			}
 		}
