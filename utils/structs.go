@@ -22,6 +22,7 @@ type WgetValues struct {
 	Exclude         string   // Flag exclude || -X
 	ConvertLinks    bool     // Flag --convert-links
 	MirrorMode      bool     //Flag --mirror
+	MirrorStarted   bool	 // Flag --mirror start time
 	Url             string   // --- url given
 	RejectSuffixes  []string // Flag rejects suffixes
 }
@@ -57,5 +58,6 @@ func WgetInstance() *WgetValues {
 		Exclude:         "",
 		ConvertLinks:    false,
 		MirrorMode:      false,
+		MirrorStarted:   false,
 	}
 }
