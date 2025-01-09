@@ -93,7 +93,7 @@ func (w *WgetValues) DownloadAndMirror() {
 		}
 	}
 
-    fmt.Printf("\nDownload completed at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+    fmt.Printf("Download completed at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 }
 
 // downloadAssetWithProgress downloads a single asset and saves it to the output directory with progress.
