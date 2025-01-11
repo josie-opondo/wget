@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func DownloadInBackground(file, urlStr, rateLimit string) {
+func downloadInBackground(file, urlStr, rateLimit string) {
 	// Parse the URL to derive the output name
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
@@ -47,7 +47,7 @@ func DownloadInBackground(file, urlStr, rateLimit string) {
 		fmt.Println("Error starting download:", err)
 		return
 	}
-	if err := SaveShowProgressState(false); err != nil {
+	if err := saveShowProgressState(false); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -61,8 +61,8 @@ func DownloadInBackground(file, urlStr, rateLimit string) {
 	}()
 }
 
-// SaveShowProgressState saves the showProgress state to a temporary file.
-func SaveShowProgressState(showProgress bool) error {
+// saveShowProgressState saves the showProgress state to a temporary file.
+func saveShowProgressState(showProgress bool) error {
 	data := []byte(strconv.FormatBool(showProgress))
 	err := os.WriteFile(app.TempConfigFile, data, 0o644)
 	if err != nil {
@@ -71,8 +71,8 @@ func SaveShowProgressState(showProgress bool) error {
 	return nil
 }
 
-// LoadShowProgressState loads the showProgress state from the temporary file if it exists.
-func LoadShowProgressState() (bool, error) {
+// loadShowProgressState loads the showProgress state from the temporary file if it exists.
+func loadShowProgressState() (bool, error) {
 	if _, err := os.Stat(app.TempConfigFile); os.IsNotExist(err) {
 		// File doesn't exist, return default true
 		return true, nil

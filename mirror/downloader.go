@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func OneDownload(file, url, limit, directory string) {
-	path := ExpandPath(directory)
+func oneDownload(file, url, limit, directory string) {
+	path := expandPath(directory)
 	fileURL := url
 	startTime := time.Now()
-	toDisplay, err := LoadShowProgressState()
+	toDisplay, err := loadShowProgressState()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -74,7 +74,7 @@ func OneDownload(file, url, limit, directory string) {
 
 	var reader io.Reader
 	if limit != "" {
-		reader = NewRateLimitedReader(resp.Body, limit) // Assuming rateLimiter is defined elsewhere
+		reader = newRateLimitedReader(resp.Body, limit) // Assuming rateLimiter is defined elsewhere
 	} else {
 		reader = resp.Body
 	}
@@ -139,8 +139,8 @@ func OneDownload(file, url, limit, directory string) {
 	}
 }
 
-// ExpandPath expands shorthand notations to full paths
-func ExpandPath(path string) string {
+// expandPath expands shorthand notations to full paths
+func expandPath(path string) string {
 	// 1. Expand `~` to the home directory
 	if strings.HasPrefix(path, "~") {
 		homeDir, err := os.UserHomeDir()

@@ -97,14 +97,8 @@ func getLocalPath(originalURL string) string {
 
 // removeHTTP removes the http:// or https:// prefix from the URL.
 func removeHTTP(url string) string {
-	// Regular expression to match the protocol (http or https) at the start of the URL
 	re := regexp.MustCompile(`^https?://`)
-
-	// Remove http or https from the URL
 	modifiedURL := re.ReplaceAllString(url, "")
-
-	// Check if the URL is a base URL (i.e., domain only without a path)
-	// This regex checks if the modified URL is something like "example.com/"
 	isBaseURL := regexp.MustCompile(`^[^/]+/?$`).MatchString(modifiedURL)
 
 	// If the URL is a base URL, append "index.html" if it's not already present
@@ -119,7 +113,7 @@ func removeHTTP(url string) string {
 	return modifiedURL
 }
 
-func IsFolder(path string) bool {
+func isFolder(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
 		fmt.Println(err)

@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
+func downloadMultipleFiles(filePath, outputFile, limit, directory string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -30,14 +30,14 @@ func DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()
-			AsyncDownload(outputFile, url, limit, directory)
+			asyncDownload(outputFile, url, limit, directory)
 		}(url)
 	}
 	wg.Wait()
 }
 
-func AsyncDownload(outputFileName, url, limit, directory string) {
-	path := ExpandPath(directory)
+func asyncDownload(outputFileName, url, limit, directory string) {
+	path := expandPath(directory)
 
 	resp, err := HttpRequest(url)
 	if err != nil {
@@ -76,7 +76,7 @@ func AsyncDownload(outputFileName, url, limit, directory string) {
 
 	var reader io.Reader = resp.Body
 	if limit != "" {
-		reader = NewRateLimitedReader(resp.Body, limit)
+		reader = newRateLimitedReader(resp.Body, limit)
 	}
 
 	buffer := make([]byte, 32*1024) // 32 KB buffer size

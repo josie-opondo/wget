@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
+func mirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	app.ProcessedURLs.Lock()
 	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
 		app.ProcessedURLs.Unlock()
@@ -27,7 +27,7 @@ func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	}
 
 	// Create the necessary directories based on the URL path
-	rootPath := ExpandPath(directory)
+	rootPath := expandPath(directory)
 	pathComponents := strings.Split(strings.Trim(u.Path, "/"), "/")
 	relativeDirPath := filepath.Join(pathComponents[:len(pathComponents)-1]...)
 	fullDirPath := filepath.Join(rootPath, relativeDirPath)

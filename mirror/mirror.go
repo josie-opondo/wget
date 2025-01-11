@@ -186,5 +186,5 @@ func downloadAsset(fileURL, domain, rejectTypes string) {
 		return
 	}
 	fmt.Printf("Downloading: %s\n", fileURL)
-	MirrorAsyncDownload("", fileURL, "", domain)
+	mirrorAsyncDownload("", fileURL, "", domain)
 }
