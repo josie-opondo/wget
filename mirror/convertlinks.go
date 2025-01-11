@@ -50,7 +50,7 @@ func convertLinks(htmlFilePath string) {
 		return
 	}
 
-	fmt.Println("Links converted for offline viewing in", htmlFilePath)
+	fmt.Printf("\nAll %s links converted for offline viewing.\n", htmlFilePath)
 }
 
 func modifyLinks(n *html.Node, basePath string) {
