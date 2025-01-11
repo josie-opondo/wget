@@ -6,17 +6,6 @@ import (
 	"time"
 )
 
-// processedURLs is a global map to keep track of processed URLs
-var processedURLs = struct {
-	sync.Mutex
-	urls map[string]bool
-}{
-	urls: make(map[string]bool),
-}
-
-// tempConfigFile is the name of the temporary file used to store the showProgress state
-const tempConfigFile = "progress_config.txt"
-
 // UrlArgs struct with exported fields (Uppercase names)
 type UrlArgs struct {
 	URL              string
@@ -31,6 +20,65 @@ type UrlArgs struct {
 	ConvertLinksFlag bool
 }
 
+type RateLimitedReader struct {
+	reader     io.Reader
+	rateLimit  int64
+	bucket     int64
+	lastFilled time.Time
+}
+
+type ProcessedURLs struct {
+	sync.Mutex
+	URLs map[string]bool
+}
+
+// MirrorState encapsulates global variables and synchronization primitives
+type MirrorState struct {
+	UrlArgs       UrlArgs
+	RateLimitedReader RateLimitedReader
+	ProcessedURLs ProcessedURLs
+	VisitedPages  map[string]bool
+	VisitedAssets map[string]bool
+	MuPages       sync.Mutex
+	MuAssets      sync.Mutex
+	Semaphore     chan struct{}
+	Count         int
+	TempConfigFile string
+}
+
+// MirrorState holds global variables and synchronization mechanisms
+// Use a Singleton pattern to ensure only one instance exists
+var (
+	instance *MirrorState
+	once     sync.Once
+)
+
+// GetMirrorState provides access to the Singleton instance of MirrorState
+func GetMirrorState() *MirrorState {
+	once.Do(func() {
+		instance = &MirrorState{
+			VisitedPages:  make(map[string]bool),
+			VisitedAssets: make(map[string]bool),
+			Semaphore:     make(chan struct{}, 50),
+			Count:         0,
+			TempConfigFile: "progress_config.txt",
+		}
+		instance.ProcessedURLs.URLs = make(map[string]bool)
+	})
+	return instance
+}
+
+// processedURLs is a global map to keep track of processed URLs
+var processedURLs = struct {
+	sync.Mutex
+	urls map[string]bool
+}{
+	urls: make(map[string]bool),
+}
+
+// tempConfigFile is the name of the temporary file used to store the showProgress state
+const tempConfigFile = "progress_config.txt"
+
 // Global variables to keep track of visited URLs and synchronization
 var (
 	visitedPages  = make(map[string]bool)
@@ -40,10 +88,3 @@ var (
 	semaphore         = make(chan struct{}, 50)
 	count         int = 0
 )
-
-type RateLimitedReader struct {
-	reader     io.Reader
-	rateLimit  int64
-	bucket     int64
-	lastFilled time.Time
-}
