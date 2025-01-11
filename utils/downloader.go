@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"wget/mirror"
 )
 
 func extractFileName(url string) string {
@@ -78,7 +77,6 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 
 func (w *WgetValues) Downloader() {
 	if w.MirrorMode {
-		mirror.DownloadAndMirror(w.Url, w.RejectSuffixes[0], w.ConvertLinks, w.Exclude)
 		return
 	}
 
