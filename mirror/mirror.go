@@ -19,8 +19,8 @@ var (
 	count         int = 0
 )
 
-// DownloadPage downloads a page and its assets, recursively visiting links
-func DownloadPage(url, rejectTypes string, convertLink bool, pathRejects string) {
+// DownloadAndMirror downloads a page and its assets, recursively visiting links
+func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
 	domain, err := extractDomain(url)
 	if err != nil {
 		fmt.Println("Could not extract domain name for:", url, "Error:", err)
@@ -75,11 +75,11 @@ func DownloadPage(url, rejectTypes string, convertLink bool, pathRejects string)
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
 					if !visitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
-						DownloadPage(indexURL, rejectTypes, convertLink, pathRejects)
+						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
 					// Process other pages as usual
-					DownloadPage(baseURL, rejectTypes, convertLink, pathRejects)
+					DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
 			// Download assets, regardless of index.html processing
