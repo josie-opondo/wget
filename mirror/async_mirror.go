@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"strconv"
+	"time"
 )
 
 func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
@@ -86,7 +87,7 @@ func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 	var reader io.Reader = resp.Body
 	var totalSize int64
 
-	// Get the content length for the progress bar (if available)
+	// Get the content length for the progress (if available)
 	if length := resp.Header.Get("Content-Length"); length != "" {
 		totalSize, err = strconv.ParseInt(length, 10, 64)
 		if err != nil {
@@ -96,16 +97,7 @@ func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 
 	buffer := make([]byte, 32*1024) // 32 KB buffer size
 	var downloaded int64
-
-	// Helper function to display progress
-	printProgress := func(downloaded, totalSize int64) {
-		if totalSize > 0 {
-			progress := float64(downloaded) / float64(totalSize) * 100
-			fmt.Printf("\rProgress: [%-50s] %.2f%%", strings.Repeat("=", int(progress/2)), progress)
-		} else {
-			fmt.Printf("\rDownloaded: %d bytes", downloaded)
-		}
-	}
+	startTime := time.Now()
 
 	// Download the file while showing progress
 	for {
@@ -121,7 +113,7 @@ func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 				return
 			}
 			downloaded += int64(n)
-			printProgress(downloaded, totalSize) // Display progress
+			showProgress(downloaded, totalSize, startTime) // Display progress
 		}
 
 		if err == io.EOF {
@@ -135,4 +127,45 @@ func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 	app.ProcessedURLs.Lock()
 	app.ProcessedURLs.URLs[urlStr] = true
 	app.ProcessedURLs.Unlock()
+}
+
+// Helper function to format the speed in a human-readable format
+func formatSpeed(speed float64) string {
+	if speed < 1024 {
+		return fmt.Sprintf("%.2f KiB/s", speed)
+	} else if speed < 1024*1024 {
+		return fmt.Sprintf("%.2f MiB/s", speed/1024)
+	} else {
+		return fmt.Sprintf("%.2f GiB/s", speed/1024/1024)
+	}
+}
+
+// Update the ShowProgress function with the correct speed format
+func showProgress(progress, total int64, startTime time.Time) {
+	const length = 50
+	if total <= 0 {
+		return
+	}
+	percent := float64(progress) / float64(total) * 100
+	numBars := int((percent / 100) * length)
+
+	// Calculate speed (bytes per second)
+	elapsed := time.Since(startTime).Seconds()
+	speed := float64(progress) / elapsed
+
+	// Calculate estimated time remaining
+	var eta string
+	if speed > 0 {
+		remaining := float64(total-progress) / speed
+		eta = fmt.Sprintf("%02d:%02d:%02d", int(remaining/3600), int(remaining/60)%60, int(remaining)%60)
+	} else {
+		eta = "--:--:--"
+	}
+
+	// Print the output with custom format
+	out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s %s",
+		float64(progress)/1024, float64(total)/1024,
+		strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
+		percent, formatSpeed(speed), eta)
+	fmt.Printf("\r%s", out)
 }
