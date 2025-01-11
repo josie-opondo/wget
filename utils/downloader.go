@@ -157,7 +157,7 @@ func (w *WgetValues) Downloader() error{
 
 	// completed time
 	completed_at := time.Now().Format("2006-01-02 15:04:05")
-	completed_str := fmt.Sprintf("\nDownload completed at: %s\n", completed_at)
+	completed_str := fmt.Sprintf("\nDownload completed at: %s", completed_at)
 	// Completed downloading the file
 	if !w.BackgroudMode {
 		fmt.Println(completed_str)
