@@ -11,17 +11,15 @@ import (
 	"sync"
 )
 
-// app is the main function instance
-
 // Global map to keep track of processed URLs
-var processedURLs = struct {
+var processedURLsd = struct {
 	sync.Mutex
 	urls map[string]bool
 }{
 	urls: make(map[string]bool),
 }
 
-func MirrorAndDownload(outputFileName, urlStr, limit, directory string) {
+func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	// Check if the URL has already been processed
 	processedURLs.Lock()
 	if processed, exists := processedURLs.urls[urlStr]; exists && processed {
@@ -42,13 +40,13 @@ func MirrorAndDownload(outputFileName, urlStr, limit, directory string) {
 	}
 
 	// Create the necessary directories based on the URL path
-	rootPath := downloader.ExpandPath(directory)
+	rootPath := ExpandPath(directory)
 	pathComponents := strings.Split(strings.Trim(u.Path, "/"), "/")
 	relativeDirPath := filepath.Join(pathComponents[:len(pathComponents)-1]...)
 	fullDirPath := filepath.Join(rootPath, relativeDirPath)
 	fileName := pathComponents[len(pathComponents)-1]
 
-	resp, err := downloader.HttpRequest(urlStr)
+	resp, err := HttpRequest(urlStr)
 	if err != nil {
 		fmt.Println(err)
 		return
