@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-const tempConfigFile = "progress_config.txt"
-
 func DownloadInBackground(file, urlStr, rateLimit string) {
 	// Parse the URL to derive the output name
 	parsedURL, err := url.Parse(urlStr)

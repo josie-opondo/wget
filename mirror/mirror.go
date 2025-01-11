@@ -9,16 +9,6 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Global variables to keep track of visited URLs and synchronization
-var (
-	visitedPages  = make(map[string]bool)
-	visitedAssets = make(map[string]bool)
-	muPages       sync.Mutex
-	muAssets      sync.Mutex
-	semaphore         = make(chan struct{}, 50)
-	count         int = 0
-)
-
 // DownloadAndMirror downloads a page and its assets, recursively visiting links
 func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
 	domain, err := extractDomain(url)

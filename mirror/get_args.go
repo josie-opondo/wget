@@ -7,20 +7,7 @@ import (
 	"strings"
 )
 
-// UrlArgs struct with exported fields (Uppercase names)
-type UrlArgs struct {
-	URL              string
-	File             string
-	RateLimit        string
-	Path             string
-	Sourcefile       string
-	WorkInBackground bool
-	Mirroring        bool // Capitalized "Mirroring"
-	RejectFlag       string
-	ExcludeFlag      string
-	ConvertLinksFlag bool
-}
-
+// ParseArgs parses the command-line arguments and returns a UrlArgs struct
 func ParseArgs() UrlArgs {
 	args := &UrlArgs{}
 	mirrorMode := false // Flag to track if --mirror is set

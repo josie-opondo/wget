@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-type RateLimitedReader struct {
-	reader     io.Reader
-	rateLimit  int64 // bytes per second
-	bucket     int64
-	lastFilled time.Time
-}
-
 func parseRateLimit(rateLimit string) (int64, error) {
 	if len(rateLimit) < 2 {
 		return 0, fmt.Errorf("invalid rate limit")

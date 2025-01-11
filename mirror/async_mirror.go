@@ -8,16 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
-
-// Global map to keep track of processed URLs
-var processedURLs = struct {
-	sync.Mutex
-	urls map[string]bool
-}{
-	urls: make(map[string]bool),
-}
 
 func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	// Check if the URL has already been processed
