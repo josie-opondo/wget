@@ -14,7 +14,7 @@ func OneDownload(file, url, limit, directory string) {
 	path := ExpandPath(directory)
 	fileURL := url
 	startTime := time.Now()
-	toDisplay, err := background.LoadShowProgressState()
+	toDisplay, err := LoadShowProgressState()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -74,7 +74,7 @@ func OneDownload(file, url, limit, directory string) {
 
 	var reader io.Reader
 	if limit != "" {
-		reader = rateLimiter.NewRateLimitedReader(resp.Body, limit) // Assuming rateLimiter is defined elsewhere
+		reader = NewRateLimitedReader(resp.Body, limit) // Assuming rateLimiter is defined elsewhere
 	} else {
 		reader = resp.Body
 	}
