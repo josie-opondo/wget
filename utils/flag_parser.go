@@ -67,15 +67,14 @@ func (w *WgetValues) FlagsParser(args []string) error{
 			if err != nil {
 				return err
 			}
-			
+
 			mirror.DownloadAndMirror(state.UrlArgs.URL, state.UrlArgs.RejectFlag, state.UrlArgs.ConvertLinksFlag, state.UrlArgs.ExcludeFlag)
 			break
 		} else if strings.Contains(arg, "--rate-limit=") {
 			idx := strings.Index(arg, "=")
 			value := strings.Trim(arg[idx+1:], " ")
 			if value == "" {
-				fmt.Println("Usage: --rate-limit=400k || --rate-limit=1M")
-				os.Exit(0)
+				return fmt.Errorf("usage: --rate-limit=400k || --rate-limit=1M")
 			}
 			w.RateLimitValue = RateLimitValue(value)
 		} else if strings.Contains(arg, "-P") {
@@ -83,13 +82,12 @@ func (w *WgetValues) FlagsParser(args []string) error{
 			value := strings.Trim(arg[idx+1:], " ")
 
 			if value == "" {
-				fmt.Println("Invalid download path")
-				os.Exit(0)
+				return fmt.Errorf("invalid download path")
 			}
 			w.OutPutDirectory = value
 		} else if strings.Contains(arg, "--reject=") || strings.Contains(arg, "-R=") {
-			// Parse the --reject flag
 			var rejectValue string
+
 			if strings.Contains(arg, "--reject=") {
 				rejectValue = strings.TrimPrefix(arg, "--reject=")
 			} else {
@@ -103,7 +101,7 @@ func (w *WgetValues) FlagsParser(args []string) error{
 			case "-O":
 				if i+1 < len(args) {
 					w.OutputFile = args[i+1]
-					i++ // Skip the next element as it's the value for -O
+					i++
 				}
 
 			case "--reject":
@@ -118,7 +116,7 @@ func (w *WgetValues) FlagsParser(args []string) error{
 			case "--mirror":
 				w.MirrorMode = true
 			default:
-				return fmt.Errorf("Unknown argument: %s", arg)
+				return fmt.Errorf("unknown argument: %s", arg)
 			}
 		}
 	}
