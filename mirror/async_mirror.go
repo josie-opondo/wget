@@ -12,16 +12,13 @@ import (
 
 func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	// Check if the URL has already been processed
-	processedURLs.Lock()
-	if processed, exists := processedURLs.urls[urlStr]; exists && processed {
-		processedURLs.Unlock()
+	state.ProcessedURLs.Lock()
+	if processed, exists := state.ProcessedURLs.URLs[urlStr]; exists && processed {
+		state.ProcessedURLs.Unlock()
 		fmt.Printf("URL already processed: %s\n", urlStr)
 		return
 	}
-	processedURLs.Unlock()
-
-	// startTime := time.Now()
-	// fmt.Printf("Start at %s\n", startTime.Format("2006-01-02 15:04:05"))
+	state.ProcessedURLs.Unlock()
 
 	// Parse the URL to get the path components
 	u, err := url.Parse(urlStr)
@@ -50,9 +47,6 @@ func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	}
 
 	contentType := resp.Header.Get("Content-Type")
-	// fmt.Printf("\n\n====>content-typt == %s of url %s\n", contentType, urlStr)
-	// contentLength := resp.ContentLength
-	// fmt.Printf("Content size: %d bytes [~%.2fMB]\n", contentLength, float64(contentLength)/1024/1024)
 
 	if outputFileName == "" {
 		if fileName == "" || strings.HasSuffix(urlStr, "/") {
@@ -113,14 +107,10 @@ func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 		}
 	}
 
-	// fmt.Println() // Move to the next line after download completes
-
-	// endTime := time.Now()
 	fmt.Printf("\033[32mDownloaded [%s]\033[0m\n", urlStr)
-	// fmt.Printf("Finished at %s\n", endTime.Format("2006-01-02 15:04:05"))
 
 	// Mark the URL as processed
-	processedURLs.Lock()
-	processedURLs.urls[urlStr] = true
-	processedURLs.Unlock()
+	state.ProcessedURLs.Lock()
+	state.ProcessedURLs.URLs[urlStr] = true
+	state.ProcessedURLs.Unlock()
 }

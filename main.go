@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"wget/utils"
 )
@@ -11,7 +12,11 @@ func main() {
 
 	//
 	w := utils.WgetInstance()
-	w.FlagsParser(cmd_args)
+	err := w.FlagsParser(cmd_args)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	w.Downloader()
 
 }

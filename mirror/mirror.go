@@ -18,17 +18,17 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 	}
 	// fmt.Println(url)
 
-	muPages.Lock()
-	if visitedPages[url] {
-		muPages.Unlock()
+	state.MuPages.Lock()
+	if state.VisitedPages[url] {
+		state.MuPages.Unlock()
 		return
 	}
-	visitedPages[url] = true
-	muPages.Unlock()
+	state.VisitedPages[url] = true
+	state.MuPages.Unlock()
 
 	// Check if we're at the root domain and force download of index.html
-	if (strings.TrimRight(url, "/") == "http://"+domain || strings.TrimRight(url, "/") == "https://"+domain) && count == 0 {
-		count++
+	if (strings.TrimRight(url, "/") == "http://"+domain || strings.TrimRight(url, "/") == "https://"+domain) && state.Count == 0 {
+		state.Count++
 		indexURL := strings.TrimRight(url, "/")
 		downloadAsset(indexURL, domain, rejectTypes)
 	}
@@ -42,11 +42,10 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 
 	// Function to handle links and assets found on the page
 	handleLink := func(link, tagName string) {
-		semaphore <- struct{}{}        // Acquire a spot in the semaphore
-		defer func() { <-semaphore }() // Release the spot
+		state.Semaphore <- struct{}{}
+		defer func() { <-state.Semaphore }()
 
 		baseURL := resolveURL(url, link)
-		// fmt.Printf("=========%s===========\n", baseURL)
 		if isRejectedPath(baseURL, pathRejects) {
 			fmt.Printf("Skipping Rejected file path: %s\n", baseURL)
 			return
@@ -59,20 +58,17 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 
 		if baseURLDomain == domain {
 			if tagName == "a" {
-				// Check if the baseURL is the root or equivalent to index.html
 				if strings.HasSuffix(baseURL, "/") || strings.HasSuffix(baseURL, "/index.html") {
 					// Ensure index.html is downloaded first
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
-					if !visitedPages[indexURL] {
+					if !state.VisitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
 						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
-					// Process other pages as usual
 					DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
-			// Download assets, regardless of index.html processing
 			downloadAsset(baseURL, domain, rejectTypes)
 		}
 	}
@@ -105,7 +101,7 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 		}
 
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			processNode(c) // Recursively process child nodes
+			processNode(c)
 		}
 	}
 
@@ -170,13 +166,13 @@ func resolveURL(base, rel string) string {
 }
 
 func downloadAsset(fileURL, domain, rejectTypes string) {
-	muAssets.Lock()
-	if visitedAssets[fileURL] {
-		muAssets.Unlock()
+	state.MuAssets.Lock()
+	if state.VisitedAssets[fileURL] {
+		state.MuAssets.Unlock()
 		return
 	}
-	visitedAssets[fileURL] = true
-	muAssets.Unlock()
+	state.VisitedAssets[fileURL] = true
+	state.MuAssets.Unlock()
 
 	if fileURL == "" || !strings.HasPrefix(fileURL, "http") {
 		fmt.Printf("Invalid URL: %s\n", fileURL)
