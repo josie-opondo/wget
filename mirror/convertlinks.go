@@ -112,14 +112,3 @@ func removeHTTP(url string) string {
 
 	return modifiedURL
 }
-
-func isFolder(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-
-	// Check if the path is a directory
-	return info.IsDir()
-}

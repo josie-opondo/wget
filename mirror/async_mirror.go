@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func mirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
+func mirrorAsyncDownload(outputFileName, urlStr,  directory string) {
 	app.ProcessedURLs.Lock()
 	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
 		app.ProcessedURLs.Unlock()
