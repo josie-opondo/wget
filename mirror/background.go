@@ -23,7 +23,7 @@ func DownloadInBackground(file, urlStr, rateLimit string) {
 	}
 
 	path := "." // Default path to save the file
-	// Create the wget-log file to log output
+	// Create the wget-log file
 	logFile, err := os.OpenFile("wget-log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		fmt.Println("Error creating log file:", err)
@@ -64,7 +64,7 @@ func DownloadInBackground(file, urlStr, rateLimit string) {
 // SaveShowProgressState saves the showProgress state to a temporary file.
 func SaveShowProgressState(showProgress bool) error {
 	data := []byte(strconv.FormatBool(showProgress))
-	err := os.WriteFile(state.TempConfigFile, data, 0o644)
+	err := os.WriteFile(app.TempConfigFile, data, 0o644)
 	if err != nil {
 		return fmt.Errorf("error saving showProgress state: %v", err)
 	}
@@ -73,12 +73,12 @@ func SaveShowProgressState(showProgress bool) error {
 
 // LoadShowProgressState loads the showProgress state from the temporary file if it exists.
 func LoadShowProgressState() (bool, error) {
-	if _, err := os.Stat(state.TempConfigFile); os.IsNotExist(err) {
+	if _, err := os.Stat(app.TempConfigFile); os.IsNotExist(err) {
 		// File doesn't exist, return default true
 		return true, nil
 	}
 
-	data, err := os.ReadFile(state.TempConfigFile)
+	data, err := os.ReadFile(app.TempConfigFile)
 	if err != nil {
 		return false, fmt.Errorf("error reading showProgress state: %v", err)
 	}
@@ -90,7 +90,7 @@ func LoadShowProgressState() (bool, error) {
 	}
 
 	// Delete the file after retrieving the state
-	err = os.Remove(state.TempConfigFile)
+	err = os.Remove(app.TempConfigFile)
 	if err != nil {
 		return false, fmt.Errorf("error deleting temp file: %v", err)
 	}

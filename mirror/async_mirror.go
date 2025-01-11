@@ -11,14 +11,13 @@ import (
 )
 
 func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
-	// Check if the URL has already been processed
-	state.ProcessedURLs.Lock()
-	if processed, exists := state.ProcessedURLs.URLs[urlStr]; exists && processed {
-		state.ProcessedURLs.Unlock()
+	app.ProcessedURLs.Lock()
+	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
+		app.ProcessedURLs.Unlock()
 		fmt.Printf("URL already processed: %s\n", urlStr)
 		return
 	}
-	state.ProcessedURLs.Unlock()
+	app.ProcessedURLs.Unlock()
 
 	// Parse the URL to get the path components
 	u, err := url.Parse(urlStr)
@@ -110,7 +109,7 @@ func MirrorAsyncDownload(outputFileName, urlStr, limit, directory string) {
 	fmt.Printf("\033[32mDownloaded [%s]\033[0m\n", urlStr)
 
 	// Mark the URL as processed
-	state.ProcessedURLs.Lock()
-	state.ProcessedURLs.URLs[urlStr] = true
-	state.ProcessedURLs.Unlock()
+	app.ProcessedURLs.Lock()
+	app.ProcessedURLs.URLs[urlStr] = true
+	app.ProcessedURLs.Unlock()
 }

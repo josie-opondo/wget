@@ -7,7 +7,10 @@ import (
 	"sync"
 
 	"golang.org/x/net/html"
+	"wget/appState"
 )
+
+var app = appState.GetAppState()
 
 // DownloadAndMirror downloads a page and its assets, recursively visiting links
 func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
@@ -16,19 +19,18 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 		fmt.Println("Could not extract domain name for:", url, "Error:", err)
 		return
 	}
-	// fmt.Println(url)
 
-	state.MuPages.Lock()
-	if state.VisitedPages[url] {
-		state.MuPages.Unlock()
+	app.MuPages.Lock()
+	if app.VisitedPages[url] {
+		app.MuPages.Unlock()
 		return
 	}
-	state.VisitedPages[url] = true
-	state.MuPages.Unlock()
+	app.VisitedPages[url] = true
+	app.MuPages.Unlock()
 
 	// Check if we're at the root domain and force download of index.html
-	if (strings.TrimRight(url, "/") == "http://"+domain || strings.TrimRight(url, "/") == "https://"+domain) && state.Count == 0 {
-		state.Count++
+	if (strings.TrimRight(url, "/") == "http://"+domain || strings.TrimRight(url, "/") == "https://"+domain) && app.Count == 0 {
+		app.Count++
 		indexURL := strings.TrimRight(url, "/")
 		downloadAsset(indexURL, domain, rejectTypes)
 	}
@@ -42,8 +44,8 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 
 	// Function to handle links and assets found on the page
 	handleLink := func(link, tagName string) {
-		state.Semaphore <- struct{}{}
-		defer func() { <-state.Semaphore }()
+		app.Semaphore <- struct{}{}
+		defer func() { <-app.Semaphore }()
 
 		baseURL := resolveURL(url, link)
 		if isRejectedPath(baseURL, pathRejects) {
@@ -61,7 +63,7 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 				if strings.HasSuffix(baseURL, "/") || strings.HasSuffix(baseURL, "/index.html") {
 					// Ensure index.html is downloaded first
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
-					if !state.VisitedPages[indexURL] {
+					if !app.VisitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
 						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
@@ -166,13 +168,13 @@ func resolveURL(base, rel string) string {
 }
 
 func downloadAsset(fileURL, domain, rejectTypes string) {
-	state.MuAssets.Lock()
-	if state.VisitedAssets[fileURL] {
-		state.MuAssets.Unlock()
+	app.MuAssets.Lock()
+	if app.VisitedAssets[fileURL] {
+		app.MuAssets.Unlock()
 		return
 	}
-	state.VisitedAssets[fileURL] = true
-	state.MuAssets.Unlock()
+	app.VisitedAssets[fileURL] = true
+	app.MuAssets.Unlock()
 
 	if fileURL == "" || !strings.HasPrefix(fileURL, "http") {
 		fmt.Printf("Invalid URL: %s\n", fileURL)
