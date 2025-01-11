@@ -75,9 +75,9 @@ func CreateIncrementalFile(dir, filename string) (*os.File, string, error) {
 	}
 }
 
-func (w *WgetValues) Downloader() {
+func (w *WgetValues) Downloader() error{
 	if w.MirrorMode {
-		return
+		return nil
 	}
 
 	/// Output logging if Background mode is false
@@ -116,15 +116,13 @@ func (w *WgetValues) Downloader() {
 		log_file = name
 
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 
 		fmt.Printf(`Output will be written to "%s".`, log_file)
 		// log_file
 		if err := os.WriteFile(log_file, []byte(cmd_output), os.ModeAppend); err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 	}
 
@@ -162,13 +160,12 @@ func (w *WgetValues) Downloader() {
 	completed_str := fmt.Sprintf("\nDownload completed at: %s\n", completed_at)
 	// Completed downloading the file
 	if !w.BackgroudMode {
-		fmt.Printf(completed_str)
-		os.Exit(0)
+		fmt.Println(completed_str)
+		return nil
 	} else {
 		if err := os.WriteFile(log_file, []byte(completed_str), os.ModeAppend); err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 	}
-	// return
+	return nil
 }

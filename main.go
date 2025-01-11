@@ -17,6 +17,10 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	w.Downloader()
-
+	
+	err = w.Downloader()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
