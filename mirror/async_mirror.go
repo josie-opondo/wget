@@ -12,7 +12,7 @@ import (
 )
 
 // Global map to keep track of processed URLs
-var processedURLsd = struct {
+var processedURLs = struct {
 	sync.Mutex
 	urls map[string]bool
 }{
