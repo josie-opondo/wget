@@ -29,3 +29,22 @@ func (r *RateLimitedReader) Read(p []byte) (n int, err error) {
 
 	return n, err
 }
+
+// ProgressRecoder tracks the download progress
+type ProgressRecoder struct {
+	Reader           io.Reader
+	Total            int64
+	Progress         int64
+	StartTime        time.Time
+	ProgressFunction func(downloaded, total int64, start time.Time)
+}
+
+// Read updates the progress bar
+func (p *ProgressRecoder) Read(b []byte) (int, error) {
+	n, err := p.Reader.Read(b)
+	if n > 0 {
+		p.Progress += int64(n)
+		p.ProgressFunction(p.Progress, p.Total, p.StartTime)
+	}
+	return n, err
+}

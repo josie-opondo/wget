@@ -8,9 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"strconv"
 )
 
-func mirrorAsyncDownload(outputFileName, urlStr,  directory string) {
+func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 	app.ProcessedURLs.Lock()
 	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
 		app.ProcessedURLs.Unlock()
@@ -83,9 +84,30 @@ func mirrorAsyncDownload(outputFileName, urlStr,  directory string) {
 	defer out.Close()
 
 	var reader io.Reader = resp.Body
+	var totalSize int64
+
+	// Get the content length for the progress bar (if available)
+	if length := resp.Header.Get("Content-Length"); length != "" {
+		totalSize, err = strconv.ParseInt(length, 10, 64)
+		if err != nil {
+			fmt.Println("Error parsing Content-Length:", err)
+		}
+	}
 
 	buffer := make([]byte, 32*1024) // 32 KB buffer size
 	var downloaded int64
+
+	// Helper function to display progress
+	printProgress := func(downloaded, totalSize int64) {
+		if totalSize > 0 {
+			progress := float64(downloaded) / float64(totalSize) * 100
+			fmt.Printf("\rProgress: [%-50s] %.2f%%", strings.Repeat("=", int(progress/2)), progress)
+		} else {
+			fmt.Printf("\rDownloaded: %d bytes", downloaded)
+		}
+	}
+
+	// Download the file while showing progress
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
@@ -99,6 +121,7 @@ func mirrorAsyncDownload(outputFileName, urlStr,  directory string) {
 				return
 			}
 			downloaded += int64(n)
+			printProgress(downloaded, totalSize) // Display progress
 		}
 
 		if err == io.EOF {
@@ -106,7 +129,7 @@ func mirrorAsyncDownload(outputFileName, urlStr,  directory string) {
 		}
 	}
 
-	fmt.Printf("\033[32mDownloaded [%s]\033[0m\n", urlStr)
+	fmt.Printf("\n\033[32mDownloaded [%s]\033[0m\n", urlStr)
 
 	// Mark the URL as processed
 	app.ProcessedURLs.Lock()
