@@ -20,7 +20,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("start at %s\n", startTime.Format("2006-01-02 15:04:05"))
+	fmt.Printf("started at %s\n", startTime.Format("2006-01-02 15:04:05"))
 
 	resp, err := utils.HttpRequest(fileURL)
 	if err != nil {
