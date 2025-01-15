@@ -12,7 +12,7 @@ var (
 )
 
 // GetAppState provides access to the Singleton instance of AppState
-func GetAppState() *AppState {
+func GetAppState() (*AppState, error) {
 	once.Do(func() {
 		instance = &AppState{
 			VisitedPages:   make(map[string]bool),
@@ -25,5 +25,5 @@ func GetAppState() *AppState {
 		instance.ParseArgs()
 		instance.taskManager()
 	})
-	return instance
+	return instance, nil
 }
