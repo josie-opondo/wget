@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -133,4 +134,20 @@ func ExpandPath(path string) string {
 	}
 
 	return absPath
+}
+
+func roundToNearest(value float64) float64 {
+	return math.Round(value*100) / 100
+}
+
+// Helper function to format the speed in a human-readable format
+func FormatSpeed(speed float64) string {
+	if speed > 1000000000 {
+		res_gb := float64(speed) / 1000000000
+		return fmt.Sprintf("~%.2fGB", roundToNearest(res_gb))
+	} else if speed > 1000000 {
+		res_gb := float64(speed) / 1000000
+		return fmt.Sprintf("[~%.2fMB]", roundToNearest(res_gb))
+	}
+	return fmt.Sprintf("%.0fKiB", speed)
 }

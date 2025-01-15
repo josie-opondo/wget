@@ -3,7 +3,6 @@ package appState
 import (
 	"fmt"
 	"io"
-	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -131,22 +130,6 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	app.ProcessedURLs.Unlock()
 }
 
-func roundToNearest(value float64) float64 {
-	return math.Round(value*100) / 100
-}
-
-// Helper function to format the speed in a human-readable format
-func formatSpeed(speed float64) string {
-	if speed > 1000000000 {
-		res_gb := float64(speed) / 1000000000
-		return fmt.Sprintf("~%.2fGB", roundToNearest(res_gb))
-	} else if speed > 1000000 {
-		res_gb := float64(speed) / 1000000
-		return fmt.Sprintf("[~%.2fMB]", roundToNearest(res_gb))
-	}
-	return fmt.Sprintf("%.0fKiB", speed)
-}
-
 // Update the ShowProgress function with the correct speed format
 func (app *AppState) showProgress(progress, total int64, startTime time.Time) {
 	const length = 50
@@ -174,7 +157,7 @@ func (app *AppState) showProgress(progress, total int64, startTime time.Time) {
 		out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s %s",
 			float64(progress)/1024, float64(total)/1024,
 			strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
-			percent, formatSpeed(speed/1024), eta)
+			percent, utils.FormatSpeed(speed/1024), eta)
 		fmt.Printf("\r%s", out)
 	}
 }
