@@ -40,7 +40,7 @@ func (app *AppState) taskManager() {
 	}
 
 	// Start downloading the file
-	downloader.OneDownload(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+	app.singleDownloader(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
 }
 
 // ParseArgs parses the command-line arguments and returns a UrlArgs struct
