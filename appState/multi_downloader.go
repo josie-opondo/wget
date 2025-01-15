@@ -38,7 +38,7 @@ func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, director
 }
 
 func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string) {
-	path := ExpandPath(directory)
+	path := utils.ExpandPath(directory)
 
 	resp, err := utils.HttpRequest(url)
 	if err != nil {
