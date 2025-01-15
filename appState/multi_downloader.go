@@ -12,11 +12,10 @@ import (
 	"wget/utils"
 )
 
-func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
+func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, directory string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
+		return fmt.Errorf("error opening file:\n%v", err)
 	}
 	defer file.Close()
 
@@ -29,26 +28,33 @@ func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, director
 			continue // Skip empty lines
 		}
 		wg.Add(1)
-		go func(url string) {
+		go func(url string) error {
 			defer wg.Done()
-			app.AsyncDownload(outputFile, url, limit, directory)
+			err := app.AsyncDownload(outputFile, url, limit, directory)
+			if err != nil {
+				return err
+			}
+			return nil
 		}(url)
 	}
 	wg.Wait()
+
+	return nil
 }
 
-func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string) {
-	path := utils.ExpandPath(directory)
+func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string) error {
+	path, err := utils.ExpandPath(directory)
+	if err != nil {
+		return err
+	}
 
 	resp, err := utils.HttpRequest(url)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Error: status %s url: [%s]\n", resp.Status, url)
-		return
+		return fmt.Errorf("error: status %s url:\n[%s]", resp.Status, url)
 	}
 
 	if outputFileName == "" {
@@ -62,16 +68,14 @@ func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string)
 	if path != "" {
 		err = os.MkdirAll(path, 0o755)
 		if err != nil {
-			fmt.Println("Error creating directory:", err)
-			return
+			return fmt.Errorf("error creating directory:\n%v", err)
 		}
 	}
 
 	var out *os.File
 	out, err = os.Create(outputFileName)
 	if err != nil {
-		fmt.Printf("Error creating file: %s\n", err)
-		return
+		return fmt.Errorf("error creating file:\n%v", err)
 	}
 	defer out.Close()
 
@@ -86,14 +90,12 @@ func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string)
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			fmt.Println("Error reading response body:", err)
-			return
+			return fmt.Errorf("oops! error reading response body")
 		}
 
 		if n > 0 {
 			if _, err := out.Write(buffer[:n]); err != nil {
-				fmt.Println("Error writing to file:", err)
-				return
+				return fmt.Errorf("error writing to file:\n%v", err)
 			}
 			downloaded += int64(n)
 		}
@@ -105,4 +107,6 @@ func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string)
 
 	// endTime := time.Now()
 	fmt.Printf("\033[32mDownloaded\033[0m [%s]\n", url)
+
+	return nil
 }
