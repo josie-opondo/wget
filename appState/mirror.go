@@ -92,12 +92,12 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 				}
 				// Check for inline styles
 				if attr.Key == "style" {
-					extractAndHandleStyleURLs(attr.Val, url, domain, rejectTypes)
+					app.extractAndHandleStyleURLs(attr.Val, url, domain, rejectTypes)
 				}
 			}
 			// Check for <style> tags
 			if n.Data == "style" && n.FirstChild != nil {
-				extractAndHandleStyleURLs(n.FirstChild.Data, url, domain, rejectTypes)
+				app.extractAndHandleStyleURLs(n.FirstChild.Data, url, domain, rejectTypes)
 			}
 		}
 
@@ -118,7 +118,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	}
 }
 
-func extractAndHandleStyleURLs(styleContent, baseURL, domain, rejectTypes string) {
+func (app *AppState) extractAndHandleStyleURLs(styleContent, baseURL, domain, rejectTypes string) {
 	re := regexp.MustCompile(`url\(['"]?([^'"()]+)['"]?\)`)
 	matches := re.FindAllStringSubmatch(styleContent, -1)
 	for _, match := range matches {
