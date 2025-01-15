@@ -44,7 +44,7 @@ func (app *AppState) taskManager() error {
 
 	// Ensure URL is provided
 	if app.UrlArgs.URL == "" {
-		return fmt.Errorf("error: URL not provided.")
+		return fmt.Errorf("error: url not provided")
 	}
 
 	// Start downloading the file
@@ -73,12 +73,12 @@ func (app *AppState) ParseArgs() error {
 			mirrorMode = true
 		} else if strings.HasPrefix(arg, "--convert-links") {
 			if !mirrorMode {
-				return fmt.Errorf("Error: --convert-links can only be used with --mirror.")
+				return fmt.Errorf("error: --convert-links can only be used with --mirror")
 			}
 			app.UrlArgs.ConvertLinksFlag = true
 		} else if strings.HasPrefix(arg, "-R=") || strings.HasPrefix(arg, "--reject=") {
 			if !mirrorMode {
-				return fmt.Errorf("Error: --reject can only be used with --mirror.")
+				return fmt.Errorf("error: --reject can only be used with --mirror")
 			}
 			if strings.HasPrefix(arg, "-R=") {
 				app.UrlArgs.RejectFlag = arg[len("-R="):]
@@ -87,7 +87,7 @@ func (app *AppState) ParseArgs() error {
 			}
 		} else if strings.HasPrefix(arg, "-X=") || strings.HasPrefix(arg, "--exclude=") {
 			if !mirrorMode {
-				return fmt.Errorf("Error: --exclude can only be used with --mirror.")
+				return fmt.Errorf("error: --exclude can only be used with --mirror")
 			}
 			if strings.HasPrefix(arg, "-X=") {
 				app.UrlArgs.ExcludeFlag = arg[len("-X="):]
@@ -102,14 +102,14 @@ func (app *AppState) ParseArgs() error {
 		} else if strings.HasPrefix(arg, "http") {
 			app.UrlArgs.URL = arg
 		} else {
-			return fmt.Errorf("Error: Unrecognized argument '%s'\n", arg)
+			return fmt.Errorf("error: Unrecognized argument'%s'", arg)
 		}
 	}
 
 	if app.UrlArgs.RateLimit != "" {
 		if strings.ToLower(string(app.UrlArgs.RateLimit[len(app.UrlArgs.RateLimit)-1])) != "k" &&
 			strings.ToLower(string(app.UrlArgs.RateLimit[len(app.UrlArgs.RateLimit)-1])) != "m" {
-			return fmt.Errorf("Invalid RateLimit")
+			return fmt.Errorf("invalid rateLimit")
 		}
 	}
 
@@ -122,23 +122,23 @@ func (app *AppState) ParseArgs() error {
 	// Check for invalid flag combinations if --mirror is provided
 	if app.UrlArgs.Mirroring {
 		if app.UrlArgs.File != "" || app.UrlArgs.Path != "" || app.UrlArgs.RateLimit != "" || app.UrlArgs.Sourcefile != "" || app.UrlArgs.WorkInBackground {
-			return fmt.Errorf("Error: --mirror can only be used with --convert-links, --reject, --exclude, and a URL. No other flags are allowed.")
+			return fmt.Errorf("error: --mirror can only be used with --convert-links, --reject, --exclude, and a URL. No other flags are allowed")
 		}
 	} else {
 		if app.UrlArgs.ConvertLinksFlag || app.UrlArgs.RejectFlag != "" || app.UrlArgs.ExcludeFlag != "" {
-			return fmt.Errorf("Error: --convert-links, --reject, and --exclude can only be used with --mirror.")
+			return fmt.Errorf("error: --convert-links, --reject, and --exclude can only be used with --mirror")
 		}
 	}
 
 	// Ensure URL is provided
 	if app.UrlArgs.URL == "" && !track {
-		return fmt.Errorf("Error: URL not provided.")
+		return fmt.Errorf("error: URL not provided")
 	}
 
 	// Validate the URL
 	err := validateURL(app.UrlArgs.URL)
 	if err != nil {
-		return fmt.Errorf("Error: invalid URL provided")
+		return fmt.Errorf("error: invalid URL provided")
 	}
 
 	return nil
@@ -147,7 +147,7 @@ func (app *AppState) ParseArgs() error {
 func validateURL(link string) error {
 	_, err := url.ParseRequestURI(link)
 	if err != nil {
-		return fmt.Errorf("invalid URL: %v", err)
+		return fmt.Errorf("invalid url:\n%v", err)
 	}
 	return nil
 }

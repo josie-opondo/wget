@@ -15,7 +15,7 @@ import (
 func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) error {
 	domain, err := utils.ExtractDomain(url)
 	if err != nil {
-		return fmt.Errorf("Could not extract domain name for: %s Error: %v", url, err)
+		return fmt.Errorf("could not extract domain name for:\n%serror: %v", url, err)
 	}
 
 	app.MuPages.Lock()
@@ -36,7 +36,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	// Fetch and get the HTML of the page
 	doc, err := fetchAndParsePage(url)
 	if err != nil {
-		return fmt.Errorf("Error fetching or parsing page: %v", err)
+		return fmt.Errorf("error fetching or parsing page:\n%v", err)
 	}
 
 	// Function to handle links and assets found on the page
@@ -51,7 +51,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 		}
 		baseURLDomain, err := utils.ExtractDomain(baseURL)
 		if err != nil {
-			fmt.Println("Could not extract domain name for:", baseURLDomain, "Error:", err)
+			fmt.Println("Could not extract domain name for:", baseURLDomain, "\nError:", err)
 			return
 		}
 

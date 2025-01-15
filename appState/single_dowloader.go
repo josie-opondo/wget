@@ -27,12 +27,12 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) error 
 
 	resp, err := utils.HttpRequest(fileURL)
 	if err != nil {
-		return fmt.Errorf("Error downloading file:\nserver misbehaving")
+		return fmt.Errorf("error downloading file:\nserver misbehaving")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error: status %s url: [%s]\n", resp.Status, url)
+		return fmt.Errorf("error: status %s\nurl: [%s]", resp.Status, url)
 	}
 	fmt.Printf("sending request, awaiting response... status %s\n", resp.Status)
 
@@ -52,7 +52,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) error 
 	if path != "" {
 		err = os.MkdirAll(path, 0o755)
 		if err != nil {
-			return fmt.Errorf("Oops! Error creating path\nError: %v", err)
+			return fmt.Errorf("oops! error creating path\n%v", err)
 		}
 	}
 	temp := ""
@@ -68,7 +68,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) error 
 
 	out, err := os.Create(outputFile)
 	if err != nil {
-		return fmt.Errorf("Error creating file:", err)
+		return fmt.Errorf("error creating file:\n%v", err)
 	}
 	defer out.Close()
 
@@ -89,12 +89,12 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) error 
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			return fmt.Errorf("Error reading response body\nError: %v", err)
+			return fmt.Errorf("error reading response body\n%v", err)
 		}
 
 		if n > 0 {
 			if _, err := out.Write(buffer[:n]); err != nil {
-				return fmt.Errorf("Error writing to file\nError: %v", err)
+				return fmt.Errorf("error writing to file\n%v", err)
 			}
 			// Update the downloaded size
 			downloaded += int64(n)

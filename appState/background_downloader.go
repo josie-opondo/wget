@@ -24,13 +24,13 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) error 
 	// Create the wget-log file to log output
 	logFile, err := os.OpenFile("wget-log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
-		return fmt.Errorf("Error creating log file: %v", err)
+		return fmt.Errorf("error creating log file:\n%v", err)
 	}
 	defer logFile.Close()
 
 	// Ensure the output directory exists
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		return fmt.Errorf("Error creating output directory: %v", err)
+		return fmt.Errorf("error creating output directory:\n%v", err)
 	}
 	cmd := exec.Command(os.Args[0], "-O="+outputName, "-P="+path, "--rate-limit="+rateLimit, urlStr)
 	cmd.Stdout = logFile
@@ -40,7 +40,7 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) error 
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("Error starting download: %v", err)
+		return fmt.Errorf("error starting download:\n%v", err)
 	}
 	if err := utils.SaveShowProgressState(app.TempConfigFile, false); err != nil {
 		return err
@@ -49,7 +49,7 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) error 
 	// Wait for the command to complete in the background
 	go func() error {
 		if err := cmd.Wait(); err != nil {
-			return fmt.Errorf("Error during download: %v", err)
+			return fmt.Errorf("error during download:\n%v", err)
 		}
 		return nil
 	}()

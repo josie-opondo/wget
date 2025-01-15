@@ -24,11 +24,15 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	// Parse the URL to get the path components
 	u, err := url.Parse(urlStr)
 	if err != nil {
-		return fmt.Errorf("Error parsing URL:\n%v", err)
+		return fmt.Errorf("error parsing URL:\n%v", err)
 	}
 
 	// Create the necessary directories based on the URL path
 	rootPath, err := utils.ExpandPath(directory)
+	if err != nil {
+		return err
+	}
+
 	pathComponents := strings.Split(strings.Trim(u.Path, "/"), "/")
 	relativeDirPath := filepath.Join(pathComponents[:len(pathComponents)-1]...)
 	fullDirPath := filepath.Join(rootPath, relativeDirPath)
@@ -41,7 +45,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error: status %s url: %s\n", resp.Status, urlStr)
+		return fmt.Errorf("error: status %s\nurl: %s", resp.Status, urlStr)
 	}
 
 	contentType := resp.Header.Get("Content-Type")
@@ -64,7 +68,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 		if _, err := os.Stat(fullDirPath); os.IsNotExist(err) {
 			err = os.MkdirAll(fullDirPath, 0o755)
 			if err != nil {
-				return fmt.Errorf("Error creating path:\n%v", err)
+				return fmt.Errorf("error creating path:\n%v", err)
 			}
 		}
 	}
@@ -75,7 +79,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	var out *os.File
 	out, err = os.Create(outputFileName)
 	if err != nil {
-		return fmt.Errorf("Error creating file:\n%v", err)
+		return fmt.Errorf("error creating file:\n%v", err)
 	}
 	defer out.Close()
 
@@ -86,7 +90,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	if length := resp.Header.Get("Content-Length"); length != "" {
 		totalSize, err = strconv.ParseInt(length, 10, 64)
 		if err != nil {
-			return fmt.Errorf("Error parsing Content-Length:\n%v", err)
+			return fmt.Errorf("error parsing Content-Length:\n%v", err)
 		}
 	}
 
@@ -98,12 +102,12 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			return fmt.Errorf("Error reading response body")
+			return fmt.Errorf("error reading response body")
 		}
 
 		if n > 0 {
 			if _, err := out.Write(buffer[:n]); err != nil {
-				return fmt.Errorf("Error writing to file:\n%v", err)
+				return fmt.Errorf("error writing to file:\n%v", err)
 			}
 			downloaded += int64(n)
 			app.showProgress(downloaded, totalSize, startTime) // Display progress
