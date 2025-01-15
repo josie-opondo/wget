@@ -178,3 +178,36 @@ func LoadShowProgressState(tempConfigFile string) (bool, error) {
 
 	return showProgress, nil
 }
+
+func ResolveURL(base, rel string) string {
+	// Remove fragment identifiers (anything starting with #)
+	if fragmentIndex := strings.Index(rel, "#"); fragmentIndex != -1 {
+		rel = rel[:fragmentIndex]
+	}
+
+	if strings.HasPrefix(rel, "http") {
+		return rel
+	}
+
+	if strings.HasPrefix(rel, "//") {
+		protocol := "http:"
+		if strings.HasPrefix(base, "https") {
+			protocol = "https:"
+		}
+		return protocol + rel
+	}
+
+	if strings.HasPrefix(rel, "/") {
+		return strings.Join(strings.Split(base, "/")[:3], "/") + rel
+	}
+	if strings.HasPrefix(rel, "./") {
+		return strings.Join(strings.Split(base, "/")[:3], "/") + rel[1:]
+	}
+	if strings.HasPrefix(rel, "//") && strings.Contains(rel[2:], "/") {
+		baseParts := strings.Split(base, "/")
+		return baseParts[0] + "//" + baseParts[2] + rel[1:]
+	}
+
+	baseParts := strings.Split(base, "/")
+	return baseParts[0] + "//" + baseParts[2] + "/" + rel
+}

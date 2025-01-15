@@ -46,7 +46,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 		app.Semaphore <- struct{}{}
 		defer func() { <-app.Semaphore }()
 
-		baseURL := resolveURL(url, link)
+		baseURL := utils.ResolveURL(url, link)
 		if utils.IsRejectedPath(baseURL, pathRejects) {
 			fmt.Printf("Skipping Rejected file path: %s\n", baseURL)
 			return
@@ -123,7 +123,7 @@ func (app *AppState) extractAndHandleStyleURLs(styleContent, baseURL, domain, re
 	matches := re.FindAllStringSubmatch(styleContent, -1)
 	for _, match := range matches {
 		if len(match) > 1 {
-			assetURL := resolveURL(baseURL, match[1])
+			assetURL := utils.ResolveURL(baseURL, match[1])
 			downloadAsset(assetURL, domain, rejectTypes)
 		}
 	}
@@ -142,39 +142,6 @@ func fetchAndParsePage(url string) (*html.Node, error) {
 	}
 
 	return html.Parse(resp.Body)
-}
-
-func resolveURL(base, rel string) string {
-	// Remove fragment identifiers (anything starting with #)
-	if fragmentIndex := strings.Index(rel, "#"); fragmentIndex != -1 {
-		rel = rel[:fragmentIndex]
-	}
-
-	if strings.HasPrefix(rel, "http") {
-		return rel
-	}
-
-	if strings.HasPrefix(rel, "//") {
-		protocol := "http:"
-		if strings.HasPrefix(base, "https") {
-			protocol = "https:"
-		}
-		return protocol + rel
-	}
-
-	if strings.HasPrefix(rel, "/") {
-		return strings.Join(strings.Split(base, "/")[:3], "/") + rel
-	}
-	if strings.HasPrefix(rel, "./") {
-		return strings.Join(strings.Split(base, "/")[:3], "/") + rel[1:]
-	}
-	if strings.HasPrefix(rel, "//") && strings.Contains(rel[2:], "/") {
-		baseParts := strings.Split(base, "/")
-		return baseParts[0] + "//" + baseParts[2] + rel[1:]
-	}
-
-	baseParts := strings.Split(base, "/")
-	return baseParts[0] + "//" + baseParts[2] + "/" + rel
 }
 
 func downloadAsset(fileURL, domain, rejectTypes string) {
