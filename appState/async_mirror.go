@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"wget/utils"
 )
 
 func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory string) {
@@ -30,13 +31,13 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	}
 
 	// Create the necessary directories based on the URL path
-	rootPath := expandPath(directory)
+	rootPath := utils.ExpandPath(directory)
 	pathComponents := strings.Split(strings.Trim(u.Path, "/"), "/")
 	relativeDirPath := filepath.Join(pathComponents[:len(pathComponents)-1]...)
 	fullDirPath := filepath.Join(rootPath, relativeDirPath)
 	fileName := pathComponents[len(pathComponents)-1]
 
-	resp, err := HttpRequest(urlStr)
+	resp, err := utils.HttpRequest(urlStr)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -73,7 +74,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 			}
 		}
 	}
-	if fileExists(outputFileName) {
+	if utils.FileExists(outputFileName) {
 		return
 	}
 

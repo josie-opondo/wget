@@ -50,7 +50,7 @@ func contains(str, substr string) bool {
 	return false
 }
 
-func fileExists(path string) bool {
+func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return false
@@ -110,8 +110,8 @@ func HttpRequest(url string) (*http.Response, error) {
 	return resp, err
 }
 
-// expandPath expands shorthand notations to full paths
-func expandPath(path string) string {
+// ExpandPath expands shorthand notations to full paths
+func ExpandPath(path string) string {
 	// 1. Expand `~` to the home directory
 	if strings.HasPrefix(path, "~") {
 		homeDir, err := os.UserHomeDir()
