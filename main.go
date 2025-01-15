@@ -3,22 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"wget/utils"
+	"wget/appState"
 )
 
 func main() {
-	// Parse the commandline arguments
-	cmd_args := os.Args[1:]
-
-	//
-	w := utils.WgetInstance()
-	err := w.FlagsParser(cmd_args)
-	if err != nil {
-		fmt.Println(err)
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: go run . <URL> [options]")
 		return
 	}
-	
-	err = w.Downloader()
+
+	_, err := appState.GetAppState()
 	if err != nil {
 		fmt.Println(err)
 		return
