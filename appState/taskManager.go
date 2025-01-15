@@ -8,11 +8,14 @@ import (
 )
 
 // taskManager calls to action methods depending on the passed flags
-func (app *AppState) taskManager() {
+func (app *AppState) taskManager() error {
 	// Mirror website handling
 	if app.UrlArgs.Mirroring {
-		app.DownloadAndMirror(app.UrlArgs.URL, app.UrlArgs.RejectFlag, app.UrlArgs.ConvertLinksFlag, app.UrlArgs.ExcludeFlag)
-		return
+		err := app.DownloadAndMirror(app.UrlArgs.URL, app.UrlArgs.RejectFlag, app.UrlArgs.ConvertLinksFlag, app.UrlArgs.ExcludeFlag)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	// If no file name is provided, derive it from the URL
@@ -23,24 +26,33 @@ func (app *AppState) taskManager() {
 
 	// Handle the work-in-background flag
 	if app.UrlArgs.WorkInBackground {
-		app.DownloadInBackground(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit)
-		return
+		err := app.DownloadInBackground(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	// Handle multiple file downloads from sourcefile
 	if app.UrlArgs.Sourcefile != "" {
-		app.DownloadMultipleFiles(app.UrlArgs.Sourcefile, app.UrlArgs.File, app.UrlArgs.RateLimit, app.UrlArgs.Path)
-		return
+		err := app.DownloadMultipleFiles(app.UrlArgs.Sourcefile, app.UrlArgs.File, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	// Ensure URL is provided
 	if app.UrlArgs.URL == "" {
-		fmt.Println("Error: URL not provided.")
-		return
+		return fmt.Errorf("error: URL not provided.")
 	}
 
 	// Start downloading the file
-	app.singleDownloader(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+	err := app.singleDownloader(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ParseArgs parses the command-line arguments and returns a UrlArgs struct
@@ -61,14 +73,12 @@ func (app *AppState) ParseArgs() error {
 			mirrorMode = true
 		} else if strings.HasPrefix(arg, "--convert-links") {
 			if !mirrorMode {
-				fmt.Println("Error: --convert-links can only be used with --mirror.")
-				os.Exit(1)
+				return fmt.Errorf("Error: --convert-links can only be used with --mirror.")
 			}
 			app.UrlArgs.ConvertLinksFlag = true
 		} else if strings.HasPrefix(arg, "-R=") || strings.HasPrefix(arg, "--reject=") {
 			if !mirrorMode {
-				fmt.Println("Error: --reject can only be used with --mirror.")
-				os.Exit(1)
+				return fmt.Errorf("Error: --reject can only be used with --mirror.")
 			}
 			if strings.HasPrefix(arg, "-R=") {
 				app.UrlArgs.RejectFlag = arg[len("-R="):]
@@ -77,8 +87,7 @@ func (app *AppState) ParseArgs() error {
 			}
 		} else if strings.HasPrefix(arg, "-X=") || strings.HasPrefix(arg, "--exclude=") {
 			if !mirrorMode {
-				fmt.Println("Error: --exclude can only be used with --mirror.")
-				os.Exit(1)
+				return fmt.Errorf("Error: --exclude can only be used with --mirror.")
 			}
 			if strings.HasPrefix(arg, "-X=") {
 				app.UrlArgs.ExcludeFlag = arg[len("-X="):]
@@ -93,48 +102,43 @@ func (app *AppState) ParseArgs() error {
 		} else if strings.HasPrefix(arg, "http") {
 			app.UrlArgs.URL = arg
 		} else {
-			fmt.Printf("Error: Unrecognized argument '%s'\n", arg)
-			os.Exit(1)
+			return fmt.Errorf("Error: Unrecognized argument '%s'\n", arg)
 		}
 	}
+
 	if app.UrlArgs.RateLimit != "" {
 		if strings.ToLower(string(app.UrlArgs.RateLimit[len(app.UrlArgs.RateLimit)-1])) != "k" &&
 			strings.ToLower(string(app.UrlArgs.RateLimit[len(app.UrlArgs.RateLimit)-1])) != "m" {
-			fmt.Println("Invalid RateLimit")
-			os.Exit(1)
+			return fmt.Errorf("Invalid RateLimit")
 		}
 	}
+
 	if app.UrlArgs.WorkInBackground {
 		if app.UrlArgs.Sourcefile != "" || app.UrlArgs.Path != "" {
-			fmt.Println("-B flag shpuld not be used with -i or -P flags")
-			os.Exit(1)
+			return fmt.Errorf("-B flag shpuld not be used with -i or -P flags")
 		}
 	}
 
 	// Check for invalid flag combinations if --mirror is provided
 	if app.UrlArgs.Mirroring {
 		if app.UrlArgs.File != "" || app.UrlArgs.Path != "" || app.UrlArgs.RateLimit != "" || app.UrlArgs.Sourcefile != "" || app.UrlArgs.WorkInBackground {
-			fmt.Println("Error: --mirror can only be used with --convert-links, --reject, --exclude, and a URL. No other flags are allowed.")
-			os.Exit(1)
+			return fmt.Errorf("Error: --mirror can only be used with --convert-links, --reject, --exclude, and a URL. No other flags are allowed.")
 		}
 	} else {
 		if app.UrlArgs.ConvertLinksFlag || app.UrlArgs.RejectFlag != "" || app.UrlArgs.ExcludeFlag != "" {
-			fmt.Println("Error: --convert-links, --reject, and --exclude can only be used with --mirror.")
-			os.Exit(1)
+			return fmt.Errorf("Error: --convert-links, --reject, and --exclude can only be used with --mirror.")
 		}
 	}
 
 	// Ensure URL is provided
 	if app.UrlArgs.URL == "" && !track {
-		fmt.Println("Error: URL not provided.")
-		os.Exit(1)
+		return fmt.Errorf("Error: URL not provided.")
+	}
 
-		// Validate the URL
-		err := validateURL(app.UrlArgs.URL)
-		if err != nil {
-			fmt.Println("Error: invalid URL provided")
-			os.Exit(1)
-		}
+	// Validate the URL
+	err := validateURL(app.UrlArgs.URL)
+	if err != nil {
+		return fmt.Errorf("Error: invalid URL provided")
 	}
 
 	return nil
