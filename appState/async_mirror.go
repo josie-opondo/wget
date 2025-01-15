@@ -13,24 +13,22 @@ import (
 	"wget/utils"
 )
 
-func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory string) {
+func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory string) error {
 	app.ProcessedURLs.Lock()
 	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
 		app.ProcessedURLs.Unlock()
-		fmt.Printf("URL already processed: %s\n", urlStr)
-		return
+		return fmt.Errorf("URL already processed:\n%s", urlStr)
 	}
 	app.ProcessedURLs.Unlock()
 
 	// Parse the URL to get the path components
 	u, err := url.Parse(urlStr)
 	if err != nil {
-		fmt.Println("Error parsing URL:", err)
-		return
+		return fmt.Errorf("Error parsing URL:\n%v", err)
 	}
 
 	// Create the necessary directories based on the URL path
-	rootPath := utils.ExpandPath(directory)
+	rootPath, err := utils.ExpandPath(directory)
 	pathComponents := strings.Split(strings.Trim(u.Path, "/"), "/")
 	relativeDirPath := filepath.Join(pathComponents[:len(pathComponents)-1]...)
 	fullDirPath := filepath.Join(rootPath, relativeDirPath)
@@ -38,14 +36,12 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 
 	resp, err := utils.HttpRequest(urlStr)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Error: status %s url: %s\n", resp.Status, urlStr)
-		return
+		return fmt.Errorf("Error: status %s url: %s\n", resp.Status, urlStr)
 	}
 
 	contentType := resp.Header.Get("Content-Type")
@@ -68,20 +64,18 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 		if _, err := os.Stat(fullDirPath); os.IsNotExist(err) {
 			err = os.MkdirAll(fullDirPath, 0o755)
 			if err != nil {
-				fmt.Println("Error creating path:", err)
-				return
+				return fmt.Errorf("Error creating path:\n%v", err)
 			}
 		}
 	}
 	if utils.FileExists(outputFileName) {
-		return
+		return nil
 	}
 
 	var out *os.File
 	out, err = os.Create(outputFileName)
 	if err != nil {
-		fmt.Printf("Error creating file: %s\n", err)
-		return
+		return fmt.Errorf("Error creating file:\n%v", err)
 	}
 	defer out.Close()
 
@@ -92,7 +86,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	if length := resp.Header.Get("Content-Length"); length != "" {
 		totalSize, err = strconv.ParseInt(length, 10, 64)
 		if err != nil {
-			fmt.Println("Error parsing Content-Length:", err)
+			return fmt.Errorf("Error parsing Content-Length:\n%v", err)
 		}
 	}
 
@@ -104,14 +98,12 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			fmt.Println("Error reading response body:", err)
-			return
+			return fmt.Errorf("Error reading response body")
 		}
 
 		if n > 0 {
 			if _, err := out.Write(buffer[:n]); err != nil {
-				fmt.Println("Error writing to file:", err)
-				return
+				return fmt.Errorf("Error writing to file:\n%v", err)
 			}
 			downloaded += int64(n)
 			app.showProgress(downloaded, totalSize, startTime) // Display progress
@@ -128,6 +120,8 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	app.ProcessedURLs.Lock()
 	app.ProcessedURLs.URLs[urlStr] = true
 	app.ProcessedURLs.Unlock()
+
+	return nil
 }
 
 // Update the ShowProgress function with the correct speed format
