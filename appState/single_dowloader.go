@@ -11,27 +11,24 @@ import (
 	"wget/utils"
 )
 
-func (app *AppState) singleDownloader(file, url, limit, directory string) {
+func (app *AppState) singleDownloader(file, url, limit, directory string) error {
 	path := utils.ExpandPath(directory)
 	fileURL := url
 	startTime := time.Now()
 	toDisplay, err := utils.LoadShowProgressState(app.TempConfigFile)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	fmt.Printf("started at %s\n", startTime.Format("2006-01-02 15:04:05"))
 
 	resp, err := utils.HttpRequest(fileURL)
 	if err != nil {
-		fmt.Println("Error downloading file:", err)
-		return
+		return fmt.Errorf("Error downloading file:\nserver misbehaving")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Error: status %s url: [%s]\n", resp.Status, url)
-		return
+		return fmt.Errorf("Error: status %s url: [%s]\n", resp.Status, url)
 	}
 	fmt.Printf("sending request, awaiting response... status %s\n", resp.Status)
 
@@ -51,8 +48,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) {
 	if path != "" {
 		err = os.MkdirAll(path, 0o755)
 		if err != nil {
-			fmt.Println("Error creating path:", err)
-			return
+			return fmt.Errorf("Oops! Error creating path\nError: %v", err)
 		}
 	}
 	temp := ""
@@ -68,8 +64,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) {
 
 	out, err := os.Create(outputFile)
 	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
+		return fmt.Errorf("Error creating file:", err)
 	}
 	defer out.Close()
 
@@ -90,14 +85,12 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) {
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil && err != io.EOF {
-			fmt.Println("Error reading response body:", err)
-			return
+			return fmt.Errorf("Error reading response body\nError: %v", err)
 		}
 
 		if n > 0 {
 			if _, err := out.Write(buffer[:n]); err != nil {
-				fmt.Println("Error writing to file:", err)
-				return
+				return fmt.Errorf("Error writing to file\nError: %v", err)
 			}
 			// Update the downloaded size
 			downloaded += int64(n)
@@ -138,4 +131,5 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) {
 	if !toDisplay {
 		fmt.Println()
 	}
+	return nil
 }
