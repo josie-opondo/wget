@@ -1,6 +1,8 @@
 package appState
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMirrorAsyncDownload(t *testing.T) {
 	app, err := GetAppState()
@@ -35,6 +37,28 @@ func TestDownloadInBackground(t *testing.T) {
 
 	// Run the function
 	err = app.DownloadInBackground(file, urlStr, rateLimit)
+
+	// Check if the error is nil (indicating success)
+	if err != nil {
+		t.Fatalf("Expected no error, but got: %v", err)
+	}
+}
+
+func TestDownloadAndMirror(t *testing.T) {
+	// Setup app state
+	app, err := GetAppState()
+	if err != nil {
+		return
+	}
+
+	// Mock input
+	url := "https://example.com"
+	rejectTypes := "image/png,image/jpg"
+	convertLink := true
+	pathRejects := "/ignore"
+
+	// Run the function
+	err = app.DownloadAndMirror(url, rejectTypes, convertLink, pathRejects)
 
 	// Check if the error is nil (indicating success)
 	if err != nil {
