@@ -13,6 +13,8 @@ var (
 
 // GetAppState provides access to the Singleton instance of AppState
 func GetAppState() (*AppState, error) {
+	var err error
+
 	once.Do(func() {
 		instance = &AppState{
 			VisitedPages:   make(map[string]bool),
@@ -22,8 +24,12 @@ func GetAppState() (*AppState, error) {
 			TempConfigFile: "progress_config.txt",
 		}
 		instance.ProcessedURLs.URLs = make(map[string]bool)
-		instance.ParseArgs()
-		instance.taskManager()
+		err = instance.ParseArgs()
+		err = instance.taskManager()
 	})
+
+	if err != nil {
+		return nil, err
+	}
 	return instance, nil
 }
