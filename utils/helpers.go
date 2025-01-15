@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func isRejected(url, rejectTypes string) bool {
+func IsRejected(url, rejectTypes string) bool {
 	if rejectTypes == "" {
 		return false
 	}

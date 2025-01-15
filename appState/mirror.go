@@ -144,7 +144,7 @@ func fetchAndParsePage(url string) (*html.Node, error) {
 	return html.Parse(resp.Body)
 }
 
-func downloadAsset(fileURL, domain, rejectTypes string) {
+func (app *AppState) downloadAsset(fileURL, domain, rejectTypes string) {
 	app.MuAssets.Lock()
 	if app.VisitedAssets[fileURL] {
 		app.MuAssets.Unlock()
@@ -158,7 +158,7 @@ func downloadAsset(fileURL, domain, rejectTypes string) {
 		return
 	}
 
-	if isRejected(fileURL, rejectTypes) {
+	if utils.IsRejected(fileURL, rejectTypes) {
 		fmt.Printf("Skipping rejected file: %s\n", fileURL)
 		return
 	}
