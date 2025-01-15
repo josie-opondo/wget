@@ -3,6 +3,7 @@ package appState
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"wget/utils"
@@ -117,9 +118,20 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	}
 }
 
+func extractAndHandleStyleURLs(styleContent, baseURL, domain, rejectTypes string) {
+	re := regexp.MustCompile(`url\(['"]?([^'"()]+)['"]?\)`)
+	matches := re.FindAllStringSubmatch(styleContent, -1)
+	for _, match := range matches {
+		if len(match) > 1 {
+			assetURL := resolveURL(baseURL, match[1])
+			downloadAsset(assetURL, domain, rejectTypes)
+		}
+	}
+}
+
 // fetchAndParsePage fetches the content of the URL and parses it as HTML
 func fetchAndParsePage(url string) (*html.Node, error) {
-	resp, err := HttpRequest(url)
+	resp, err := utils.HttpRequest(url)
 	if err != nil {
 		return nil, err
 	}

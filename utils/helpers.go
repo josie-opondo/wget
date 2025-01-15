@@ -60,17 +60,6 @@ func FileExists(path string) bool {
 	return err == nil
 }
 
-// func extractAndHandleStyleURLs(styleContent, baseURL, domain, rejectTypes string) {
-// 	re := regexp.MustCompile(`url\(['"]?([^'"()]+)['"]?\)`)
-// 	matches := re.FindAllStringSubmatch(styleContent, -1)
-// 	for _, match := range matches {
-// 		if len(match) > 1 {
-// 			assetURL := resolveURL(baseURL, match[1])
-// 			downloadAsset(assetURL, domain, rejectTypes)
-// 		}
-// 	}
-// }
-
 func ExtractDomain(urlStr string) (string, error) {
 	u, err := url.Parse(urlStr)
 	if err != nil {
