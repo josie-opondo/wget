@@ -46,7 +46,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 		defer func() { <-app.Semaphore }()
 
 		baseURL := resolveURL(url, link)
-		if isRejectedPath(baseURL, pathRejects) {
+		if utils.IsRejectedPath(baseURL, pathRejects) {
 			fmt.Printf("Skipping Rejected file path: %s\n", baseURL)
 			return
 		}

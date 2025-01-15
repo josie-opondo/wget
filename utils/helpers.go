@@ -25,7 +25,7 @@ func isRejected(url, rejectTypes string) bool {
 	return false
 }
 
-func isRejectedPath(url, pathRejects string) bool {
+func IsRejectedPath(url, pathRejects string) bool {
 	if pathRejects == "" {
 		return false
 	}
