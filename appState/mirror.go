@@ -63,10 +63,10 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
 					if !app.VisitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
-						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
+						app.DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
-					DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
+					app.DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
 			downloadAsset(baseURL, domain, rejectTypes)
@@ -79,7 +79,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	processNode = func(n *html.Node) {
 		if n.Type == html.ElementNode {
 			for _, attr := range n.Attr {
-				if isValidAttribute(n.Data, attr.Key) {
+				if utils.IsValidAttribute(n.Data, attr.Key) {
 					link := attr.Val
 					if link != "" {
 						wg.Add(1)
