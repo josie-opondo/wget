@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -150,4 +151,41 @@ func FormatSpeed(speed float64) string {
 		return fmt.Sprintf("[~%.2fMB]", roundToNearest(res_gb))
 	}
 	return fmt.Sprintf("%.0fKiB", speed)
+}
+
+// SaveShowProgressState saves the showProgress state to a temporary file.
+func SaveShowProgressState(tempConfigFile string, showProgress bool) error {
+	data := []byte(strconv.FormatBool(showProgress))
+	err := os.WriteFile(tempConfigFile, data, 0o644)
+	if err != nil {
+		return fmt.Errorf("error saving showProgress state: %v", err)
+	}
+	return nil
+}
+
+// LoadShowProgressState loads the showProgress state from the temporary file if it exists.
+func LoadShowProgressState(tempConfigFile string) (bool, error) {
+	if _, err := os.Stat(tempConfigFile); os.IsNotExist(err) {
+		// File doesn't exist, return default true
+		return true, nil
+	}
+
+	data, err := os.ReadFile(tempConfigFile)
+	if err != nil {
+		return false, fmt.Errorf("error reading showProgress state: %v", err)
+	}
+
+	// Parse the boolean value
+	showProgress, err := strconv.ParseBool(string(data))
+	if err != nil {
+		return false, fmt.Errorf("error parsing showProgress state: %v", err)
+	}
+
+	// Delete the file after retrieving the state
+	err = os.Remove(tempConfigFile)
+	if err != nil {
+		return false, fmt.Errorf("error deleting temp file: %v", err)
+	}
+
+	return showProgress, nil
 }

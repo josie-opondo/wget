@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
+	"wget/utils"
 )
 
 func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) {
@@ -46,7 +46,7 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) {
 		fmt.Println("Error starting download:", err)
 		return
 	}
-	if err := SaveShowProgressState(app.TempConfigFile, false); err != nil {
+	if err := utils.SaveShowProgressState(app.TempConfigFile, false); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -58,41 +58,4 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) {
 			return
 		}
 	}()
-}
-
-// SaveShowProgressState saves the showProgress state to a temporary file.
-func SaveShowProgressState(tempConfigFile string, showProgress bool) error {
-	data := []byte(strconv.FormatBool(showProgress))
-	err := os.WriteFile(tempConfigFile, data, 0o644)
-	if err != nil {
-		return fmt.Errorf("error saving showProgress state: %v", err)
-	}
-	return nil
-}
-
-// LoadShowProgressState loads the showProgress state from the temporary file if it exists.
-func LoadShowProgressState(tempConfigFile string) (bool, error) {
-	if _, err := os.Stat(tempConfigFile); os.IsNotExist(err) {
-		// File doesn't exist, return default true
-		return true, nil
-	}
-
-	data, err := os.ReadFile(tempConfigFile)
-	if err != nil {
-		return false, fmt.Errorf("error reading showProgress state: %v", err)
-	}
-
-	// Parse the boolean value
-	showProgress, err := strconv.ParseBool(string(data))
-	if err != nil {
-		return false, fmt.Errorf("error parsing showProgress state: %v", err)
-	}
-
-	// Delete the file after retrieving the state
-	err = os.Remove(tempConfigFile)
-	if err != nil {
-		return false, fmt.Errorf("error deleting temp file: %v", err)
-	}
-
-	return showProgress, nil
 }
