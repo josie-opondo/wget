@@ -2,10 +2,10 @@ package appState
 
 import "testing"
 
-func (test *AppState) TestMirrorAsyncDownload(t *testing.T) {
-	_, err := GetAppState()
+func TestMirrorAsyncDownload(t *testing.T) {
+	app, err := GetAppState()
 	if err != nil {
-		t.Fatalf("Expected no error, but got: %v", err)
+		return
 	}
 	// Mock input
 	outputFileName := "testfile.txt"
@@ -13,7 +13,28 @@ func (test *AppState) TestMirrorAsyncDownload(t *testing.T) {
 	directory := "./testdir"
 
 	// Run the function
-	err = test.mirrorAsyncDownload(outputFileName, urlStr, directory)
+	err = app.mirrorAsyncDownload(outputFileName, urlStr, directory)
+
+	// Check if the error is nil (indicating success)
+	if err != nil {
+		t.Fatalf("Expected no error, but got: %v", err)
+	}
+}
+
+func TestDownloadInBackground(t *testing.T) {
+	// Initialize AppState
+	app, err := GetAppState()
+	if err != nil {
+		return
+	}
+
+	// Mock input
+	file := "testfile.txt"
+	urlStr := "https://example.com/testfile.txt"
+	rateLimit := "500k" // Example rate limit
+
+	// Run the function
+	err = app.DownloadInBackground(file, urlStr, rateLimit)
 
 	// Check if the error is nil (indicating success)
 	if err != nil {
