@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"wget/utils"
 )
 
 // taskManager calls to action methods depending on the passed flags
@@ -67,6 +68,13 @@ func (app *AppState) ParseArgs() error {
 		} else if strings.HasPrefix(arg, "-P=") {
 			app.UrlArgs.Path = arg[len("-P="):]
 		} else if strings.HasPrefix(arg, "--rate-limit=") {
+			if err := utils.RateLimitValidator(arg);err != nil{
+				return err
+			}
+			// if err != nil {
+			// 	fmt.Println(err)
+			// 	os.Exit(0)
+			// }
 			app.UrlArgs.RateLimit = arg[len("--rate-limit="):]
 		} else if strings.HasPrefix(arg, "--mirror") {
 			app.UrlArgs.Mirroring = true

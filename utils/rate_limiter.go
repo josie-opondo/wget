@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -12,6 +13,39 @@ type RateLimitedReader struct {
 	rateLimit  int64 // bytes per second
 	bucket     int64
 	lastFilled time.Time
+}
+
+func RateLimitValidator(s string) error {
+	if !strings.HasSuffix(s, "k") && !strings.HasSuffix(s, "M") {
+		return fmt.Errorf("invalid rate limit value.\nUsage: --rate-limit=400k || --rate-limit=2M")
+	}
+
+	idx := strings.Index(s,"=")
+
+	if strings.Contains(s, "k") {
+		ln := len(s) - 1
+		// int value string
+		val := s[idx+1:ln]
+		// convert the value to int
+		_, err := strconv.Atoi(val)
+		if err != nil {
+			return fmt.Errorf("invalid rate limit value")
+		}
+		return nil
+	}
+
+	if strings.Contains(s, "M") {
+		ln := len(s) - 1
+		// int value string
+		val := s[idx+1:ln]
+		// convert the value to int
+		_, err := strconv.Atoi(val)
+		if err != nil {
+			return fmt.Errorf("invalid rate limit value there")
+		}
+		return nil
+	}
+	return nil
 }
 
 func parseRateLimit(rateLimit string) (int64, error) {

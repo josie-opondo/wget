@@ -1,6 +1,8 @@
 package appState
 
 import (
+	"fmt"
+	"os"
 	"sync"
 )
 
@@ -24,7 +26,10 @@ func GetAppState() (*AppState, error) {
 			TempConfigFile: "progress_config.txt",
 		}
 		instance.ProcessedURLs.URLs = make(map[string]bool)
-		err = instance.ParseArgs()
+		if err = instance.ParseArgs(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		err = instance.taskManager()
 	})
 
