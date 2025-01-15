@@ -102,13 +102,12 @@ func HttpRequest(url string) (*http.Response, error) {
 }
 
 // ExpandPath expands shorthand notations to full paths
-func ExpandPath(path string) string {
+func ExpandPath(path string) (string, error) {
 	// 1. Expand `~` to the home directory
 	if strings.HasPrefix(path, "~") {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Println("Error finding home directory:", err)
-			return ""
+			return "", fmt.Errorf("error finding home directory:\n %v", err)
 		}
 		path = strings.Replace(path, "~", homeDir, 1)
 	}
@@ -119,11 +118,10 @@ func ExpandPath(path string) string {
 	// 3. Convert relative paths (./ or ../) to absolute paths
 	absPath, err := filepath.Abs(path)
 	if err != nil {
-		fmt.Println("Error getting absolute path:", err)
-		return ""
+		return "", fmt.Errorf("error getting absolute path:\n %v", err)
 	}
 
-	return absPath
+	return absPath, nil
 }
 
 func roundToNearest(value float64) float64 {

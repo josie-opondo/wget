@@ -12,7 +12,11 @@ import (
 )
 
 func (app *AppState) singleDownloader(file, url, limit, directory string) error {
-	path := utils.ExpandPath(directory)
+	path, err := utils.ExpandPath(directory)
+	if err != nil {
+		return err
+	}
+
 	fileURL := url
 	startTime := time.Now()
 	toDisplay, err := utils.LoadShowProgressState(app.TempConfigFile)
