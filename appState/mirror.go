@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"wget/utils"
 
 	"golang.org/x/net/html"
 )
 
 // DownloadAndMirror downloads a page and its assets, recursively visiting links
 func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
-	app.
-		domain, err := extractDomain(url)
+	domain, err := utils.ExtractDomain(url)
 	if err != nil {
 		fmt.Println("Could not extract domain name for:", url, "Error:", err)
 		return
@@ -50,7 +50,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 			fmt.Printf("Skipping Rejected file path: %s\n", baseURL)
 			return
 		}
-		baseURLDomain, err := extractDomain(baseURL)
+		baseURLDomain, err := utils.ExtractDomain(baseURL)
 		if err != nil {
 			fmt.Println("Could not extract domain name for:", baseURLDomain, "Error:", err)
 			return
@@ -63,10 +63,10 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
 					if !app.VisitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
-						app.DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
+						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
-					app.DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
+					DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
 			downloadAsset(baseURL, domain, rejectTypes)

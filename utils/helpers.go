@@ -71,7 +71,7 @@ func FileExists(path string) bool {
 // 	}
 // }
 
-func extractDomain(urlStr string) (string, error) {
+func ExtractDomain(urlStr string) (string, error) {
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
