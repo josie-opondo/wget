@@ -31,7 +31,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	if (strings.TrimRight(url, "/") == "http://"+domain || strings.TrimRight(url, "/") == "https://"+domain) && app.Count == 0 {
 		app.Count++
 		indexURL := strings.TrimRight(url, "/")
-		downloadAsset(indexURL, domain, rejectTypes)
+		app.downloadAsset(indexURL, domain, rejectTypes)
 	}
 
 	// Fetch and get the HTML of the page
@@ -63,14 +63,14 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 					// Ensure index.html is downloaded first
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
 					if !app.VisitedPages[indexURL] {
-						downloadAsset(indexURL, domain, rejectTypes)
+						app.downloadAsset(indexURL, domain, rejectTypes)
 						app.DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
 					app.DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
-			downloadAsset(baseURL, domain, rejectTypes)
+			app.downloadAsset(baseURL, domain, rejectTypes)
 		}
 	}
 
@@ -124,7 +124,7 @@ func (app *AppState) extractAndHandleStyleURLs(styleContent, baseURL, domain, re
 	for _, match := range matches {
 		if len(match) > 1 {
 			assetURL := utils.ResolveURL(baseURL, match[1])
-			downloadAsset(assetURL, domain, rejectTypes)
+			app.downloadAsset(assetURL, domain, rejectTypes)
 		}
 	}
 }
@@ -163,5 +163,5 @@ func (app *AppState) downloadAsset(fileURL, domain, rejectTypes string) {
 		return
 	}
 	fmt.Printf("Downloading: %s\n", fileURL)
-	mirrorAsyncDownload("", fileURL, domain)
+	app.mirrorAsyncDownload("", fileURL, domain)
 }
