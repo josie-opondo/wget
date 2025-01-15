@@ -1,4 +1,4 @@
-package mirror
+package appState
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func mirrorAsyncDownload(outputFileName, urlStr, directory string) {
+func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory string) {
 	app.ProcessedURLs.Lock()
 	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
 		app.ProcessedURLs.Unlock()
@@ -171,9 +171,9 @@ func showProgress(progress, total int64, startTime time.Time) {
 	// Print the output with custom format
 	if !app.UrlArgs.WorkInBackground {
 		out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s %s",
-		float64(progress)/1024, float64(total)/1024,
-		strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
-		percent, formatSpeed(speed/1024), eta)
-	fmt.Printf("\r%s", out)
+			float64(progress)/1024, float64(total)/1024,
+			strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),
+			percent, formatSpeed(speed/1024), eta)
+		fmt.Printf("\r%s", out)
 	}
 }
