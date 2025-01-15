@@ -115,7 +115,7 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 				return
 			}
 			downloaded += int64(n)
-			showProgress(downloaded, totalSize, startTime) // Display progress
+			app.showProgress(downloaded, totalSize, startTime) // Display progress
 		}
 
 		if err == io.EOF {
@@ -148,7 +148,7 @@ func formatSpeed(speed float64) string {
 }
 
 // Update the ShowProgress function with the correct speed format
-func showProgress(progress, total int64, startTime time.Time) {
+func (app *AppState) showProgress(progress, total int64, startTime time.Time) {
 	const length = 50
 	if total <= 0 {
 		return
