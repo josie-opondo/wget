@@ -7,6 +7,42 @@ import (
 	"strings"
 )
 
+// taskManager calls to action methods depending on the passed flags
+func (app *AppState) taskManager() {
+	// Mirror website handling
+	if app.UrlArgs.Mirroring {
+		app.DownloadAndMirror(app.UrlArgs.URL, app.UrlArgs.RejectFlag, app.UrlArgs.ConvertLinksFlag, app.UrlArgs.ExcludeFlag)
+		return
+	}
+
+	// If no file name is provided, derive it from the URL
+	if app.UrlArgs.File == "" && app.UrlArgs.URL != "" {
+		urlParts := strings.Split(app.UrlArgs.URL, "/")
+		app.UrlArgs.File = urlParts[len(urlParts)-1]
+	}
+
+	// Handle the work-in-background flag
+	if app.UrlArgs.WorkInBackground {
+		background.DownloadInBackground(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit)
+		return
+	}
+
+	// Handle multiple file downloads from sourcefile
+	if app.UrlArgs.Sourcefile != "" {
+		downloader.DownloadMultipleFiles(app.UrlArgs.Sourcefile, app.UrlArgs.File, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+		return
+	}
+
+	// Ensure URL is provided
+	if app.UrlArgs.URL == "" {
+		fmt.Println("Error: URL not provided.")
+		return
+	}
+
+	// Start downloading the file
+	downloader.OneDownload(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+}
+
 // ParseArgs parses the command-line arguments and returns a UrlArgs struct
 func (app *AppState) ParseArgs() error {
 	mirrorMode := false

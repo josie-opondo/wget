@@ -1,4 +1,4 @@
-package mirror
+package appState
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 	"sync"
 
 	"golang.org/x/net/html"
-	"wget/appState"
 )
 
-var app = appState.GetAppState()
-
 // DownloadAndMirror downloads a page and its assets, recursively visiting links
-func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
-	domain, err := extractDomain(url)
+func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
+	app.
+		domain, err := extractDomain(url)
 	if err != nil {
 		fmt.Println("Could not extract domain name for:", url, "Error:", err)
 		return
@@ -65,10 +63,10 @@ func DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects st
 					indexURL := strings.TrimRight(baseURL, "/") + "/index.html"
 					if !app.VisitedPages[indexURL] {
 						downloadAsset(indexURL, domain, rejectTypes)
-						DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
+						app.DownloadAndMirror(indexURL, rejectTypes, convertLink, pathRejects)
 					}
 				} else {
-					DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
+					app.DownloadAndMirror(baseURL, rejectTypes, convertLink, pathRejects)
 				}
 			}
 			downloadAsset(baseURL, domain, rejectTypes)

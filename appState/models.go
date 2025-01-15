@@ -34,14 +34,14 @@ type ProcessedURLs struct {
 
 // AppState encapsulates global variables and synchronization primitives
 type AppState struct {
-	UrlArgs       UrlArgs
+	UrlArgs           UrlArgs
 	RateLimitedReader RateLimitedReader
-	ProcessedURLs ProcessedURLs
-	VisitedPages  map[string]bool
-	VisitedAssets map[string]bool
-	MuPages       sync.Mutex
-	MuAssets      sync.Mutex
-	Semaphore     chan struct{}
-	Count         int
-	TempConfigFile string
+	ProcessedURLs     ProcessedURLs
+	VisitedPages      map[string]bool
+	VisitedAssets     map[string]bool
+	MuPages           sync.Mutex
+	MuAssets          sync.Mutex
+	Semaphore         chan struct{}
+	Count             int
+	TempConfigFile    string
 }
