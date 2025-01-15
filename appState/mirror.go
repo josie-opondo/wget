@@ -114,7 +114,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 
 	// Convert links if the flag is set
 	if convertLink {
-		convertLinks(url)
+		utils.ConvertLinks(url)
 	}
 }
 

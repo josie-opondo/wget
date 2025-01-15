@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func convertLinks(htmlFilePath string) {
+func ConvertLinks(htmlFilePath string) {
 	htmlFilePath = removeHTTP(htmlFilePath)
 
 	if !strings.HasSuffix(htmlFilePath, ".html") {
