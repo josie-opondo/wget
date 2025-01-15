@@ -23,13 +23,13 @@ func (app *AppState) taskManager() {
 
 	// Handle the work-in-background flag
 	if app.UrlArgs.WorkInBackground {
-		background.DownloadInBackground(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit)
+		app.DownloadInBackground(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit)
 		return
 	}
 
 	// Handle multiple file downloads from sourcefile
 	if app.UrlArgs.Sourcefile != "" {
-		downloader.DownloadMultipleFiles(app.UrlArgs.Sourcefile, app.UrlArgs.File, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+		app.DownloadMultipleFiles(app.UrlArgs.Sourcefile, app.UrlArgs.File, app.UrlArgs.RateLimit, app.UrlArgs.Path)
 		return
 	}
 

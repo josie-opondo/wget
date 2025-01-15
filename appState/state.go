@@ -23,6 +23,7 @@ func GetAppState() *AppState {
 		}
 		instance.ProcessedURLs.URLs = make(map[string]bool)
 		instance.ParseArgs()
+		instance.taskManager()
 	})
 	return instance
 }
