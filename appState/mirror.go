@@ -12,17 +12,16 @@ import (
 )
 
 // DownloadAndMirror downloads a page and its assets, recursively visiting links
-func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) {
+func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool, pathRejects string) error {
 	domain, err := utils.ExtractDomain(url)
 	if err != nil {
-		fmt.Println("Could not extract domain name for:", url, "Error:", err)
-		return
+		return fmt.Errorf("Could not extract domain name for: %s Error: %v", url, err)
 	}
 
 	app.MuPages.Lock()
 	if app.VisitedPages[url] {
 		app.MuPages.Unlock()
-		return
+		return nil
 	}
 	app.VisitedPages[url] = true
 	app.MuPages.Unlock()
@@ -37,8 +36,7 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	// Fetch and get the HTML of the page
 	doc, err := fetchAndParsePage(url)
 	if err != nil {
-		fmt.Println("Error fetching or parsing page:", err)
-		return
+		return fmt.Errorf("Error fetching or parsing page: %v", err)
 	}
 
 	// Function to handle links and assets found on the page
@@ -116,6 +114,8 @@ func (app *AppState) DownloadAndMirror(url, rejectTypes string, convertLink bool
 	if convertLink {
 		utils.ConvertLinks(url)
 	}
+
+	return nil
 }
 
 func (app *AppState) extractAndHandleStyleURLs(styleContent, baseURL, domain, rejectTypes string) {
