@@ -1,15 +1,14 @@
-package mirror
+package appState
 
 import (
 	"fmt"
 	"net/url"
 	"os"
 	"strings"
-	"wget/appState"
 )
 
 // ParseArgs parses the command-line arguments and returns a UrlArgs struct
-func ParseArgs() (*appState.AppState, error) {
+func (app *AppState) ParseArgs() error {
 	mirrorMode := false
 	track := false
 
@@ -102,7 +101,7 @@ func ParseArgs() (*appState.AppState, error) {
 		}
 	}
 
-	return app, nil
+	return nil
 }
 
 func validateURL(link string) error {

@@ -12,16 +12,17 @@ var (
 )
 
 // GetAppState provides access to the Singleton instance of AppState
-func GetAppState() (*AppState) {
+func GetAppState() *AppState {
 	once.Do(func() {
 		instance = &AppState{
-			VisitedPages:  make(map[string]bool),
-			VisitedAssets: make(map[string]bool),
-			Semaphore:     make(chan struct{}, 50),
-			Count:         0,
+			VisitedPages:   make(map[string]bool),
+			VisitedAssets:  make(map[string]bool),
+			Semaphore:      make(chan struct{}, 50),
+			Count:          0,
 			TempConfigFile: "progress_config.txt",
 		}
 		instance.ProcessedURLs.URLs = make(map[string]bool)
+		instance.ParseArgs()
 	})
 	return instance
 }

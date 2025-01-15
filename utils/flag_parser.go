@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"wget/mirror"
 )
 
 // ValidateURL checks if a given string is a valid URL
@@ -56,19 +55,13 @@ func RateLimitValue(s string) int {
 	return 0
 }
 
-func (w *WgetValues) FlagsParser(args []string) error{
+func (w *WgetValues) FlagsParser(args []string) error {
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		if ValidateURL(arg) {
 			w.Url = arg
-		}else if strings.Contains(arg, "--mirror") {
+		} else if strings.Contains(arg, "--mirror") {
 			w.MirrorMode = true
-			state, err := mirror.ParseArgs()
-			if err != nil {
-				return err
-			}
-
-			mirror.DownloadAndMirror(state.UrlArgs.URL, state.UrlArgs.RejectFlag, state.UrlArgs.ConvertLinksFlag, state.UrlArgs.ExcludeFlag)
 			break
 		} else if strings.Contains(arg, "--rate-limit=") {
 			idx := strings.Index(arg, "=")
