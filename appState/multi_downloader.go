@@ -12,7 +12,7 @@ import (
 	"wget/utils"
 )
 
-func DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
+func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -31,16 +31,16 @@ func DownloadMultipleFiles(filePath, outputFile, limit, directory string) {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()
-			AsyncDownload(outputFile, url, limit, directory)
+			app.AsyncDownload(outputFile, url, limit, directory)
 		}(url)
 	}
 	wg.Wait()
 }
 
-func AsyncDownload(outputFileName, url, limit, directory string) {
+func (app *AppState) AsyncDownload(outputFileName, url, limit, directory string) {
 	path := ExpandPath(directory)
 
-	resp, err := HttpRequest(url)
+	resp, err := utils.HttpRequest(url)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -80,7 +80,7 @@ func AsyncDownload(outputFileName, url, limit, directory string) {
 		reader = utils.NewRateLimitedReader(resp.Body, limit)
 	}
 
-	buffer := make([]byte, 32*1024) // 32 KB buffer size
+	buffer := make([]byte, 32*1024)
 	fmt.Printf("Downloading.... [%s]\n", url)
 	var downloaded int64
 	for {
@@ -105,5 +105,4 @@ func AsyncDownload(outputFileName, url, limit, directory string) {
 
 	// endTime := time.Now()
 	fmt.Printf("\033[32mDownloaded\033[0m [%s]\n", url)
-	// fmt.Printf("Finished at %s\n", endTime.Format("2006-01-02 15:04:05"))
 }
