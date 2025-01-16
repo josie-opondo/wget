@@ -9,7 +9,11 @@ import (
 )
 
 // taskManager calls to action methods depending on the passed flags
-func (app *AppState) taskManager() error {
+func (app *AppState) taskManager(err error) error {
+	if err != nil {
+		return err
+	}
+
 	// Mirror website handling
 	if app.UrlArgs.Mirroring {
 		err := app.DownloadAndMirror(app.UrlArgs.URL, app.UrlArgs.RejectFlag, app.UrlArgs.ConvertLinksFlag, app.UrlArgs.ExcludeFlag)
@@ -49,7 +53,7 @@ func (app *AppState) taskManager() error {
 	}
 
 	// Start downloading the file
-	err := app.singleDownloader(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
+	err = app.singleDownloader(app.UrlArgs.File, app.UrlArgs.URL, app.UrlArgs.RateLimit, app.UrlArgs.Path)
 	if err != nil {
 		return err
 	}
@@ -68,7 +72,7 @@ func (app *AppState) ParseArgs() error {
 		} else if strings.HasPrefix(arg, "-P=") {
 			app.UrlArgs.Path = arg[len("-P="):]
 		} else if strings.HasPrefix(arg, "--rate-limit=") {
-			if err := utils.RateLimitValidator(arg);err != nil{
+			if err := utils.RateLimitValidator(arg); err != nil {
 				return err
 			}
 			// if err != nil {
