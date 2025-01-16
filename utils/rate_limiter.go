@@ -16,16 +16,15 @@ type RateLimitedReader struct {
 }
 
 func RateLimitValidator(s string) error {
-	if !strings.HasSuffix(s, "k") && !strings.HasSuffix(s, "M") {
+	ln := len(s) - 1
+	idx := strings.Index(s, "=")
+	if !strings.ContainsAny(s[idx:ln], "k,m,K,M") {
 		return fmt.Errorf("invalid rate limit value.\nUsage: --rate-limit=400k || --rate-limit=2M")
 	}
 
-	idx := strings.Index(s,"=")
-
 	if strings.Contains(s, "k") {
-		ln := len(s) - 1
 		// int value string
-		val := s[idx+1:ln]
+		val := s[idx+1 : ln]
 		// convert the value to int
 		_, err := strconv.Atoi(val)
 		if err != nil {
@@ -37,7 +36,7 @@ func RateLimitValidator(s string) error {
 	if strings.Contains(s, "M") {
 		ln := len(s) - 1
 		// int value string
-		val := s[idx+1:ln]
+		val := s[idx+1 : ln]
 		// convert the value to int
 		_, err := strconv.Atoi(val)
 		if err != nil {
