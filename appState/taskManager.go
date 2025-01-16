@@ -75,10 +75,7 @@ func (app *AppState) ParseArgs() error {
 			if err := utils.RateLimitValidator(arg); err != nil {
 				return err
 			}
-			// if err != nil {
-			// 	fmt.Println(err)
-			// 	os.Exit(0)
-			// }
+
 			app.UrlArgs.RateLimit = arg[len("--rate-limit="):]
 		} else if strings.HasPrefix(arg, "--mirror") {
 			app.UrlArgs.Mirroring = true
