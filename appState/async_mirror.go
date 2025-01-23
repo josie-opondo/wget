@@ -14,12 +14,12 @@ import (
 )
 
 func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory string) error {
-	app.ProcessedURLs.Lock()
-	if processed, exists := app.ProcessedURLs.URLs[urlStr]; exists && processed {
-		app.ProcessedURLs.Unlock()
+	app.processedURLs.Lock()
+	if processed, exists := app.processedURLs.urls[urlStr]; exists && processed {
+		app.processedURLs.Unlock()
 		return fmt.Errorf("URL already processed:\n%s", urlStr)
 	}
-	app.ProcessedURLs.Unlock()
+	app.processedURLs.Unlock()
 
 	// Parse the URL to get the path components
 	u, err := url.Parse(urlStr)
@@ -121,9 +121,9 @@ func (app *AppState) mirrorAsyncDownload(outputFileName, urlStr, directory strin
 	fmt.Printf("\n\033[32mDownloaded [%s]\033[0m\n", urlStr)
 
 	// Mark the URL as processed
-	app.ProcessedURLs.Lock()
-	app.ProcessedURLs.URLs[urlStr] = true
-	app.ProcessedURLs.Unlock()
+	app.processedURLs.Lock()
+	app.processedURLs.urls[urlStr] = true
+	app.processedURLs.Unlock()
 
 	return nil
 }
@@ -151,7 +151,7 @@ func (app *AppState) showProgress(progress, total int64, startTime time.Time) {
 	}
 
 	// Print the output with custom format
-	if !app.UrlArgs.WorkInBackground {
+	if !app.urlArgs.workInBackground {
 		out := fmt.Sprintf("%.2f KiB / %.2f KiB [%s%s] %.0f%% %s %s",
 			float64(progress)/1024, float64(total)/1024,
 			strings.Repeat("=", numBars), strings.Repeat(" ", length-numBars),

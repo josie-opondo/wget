@@ -16,15 +16,8 @@ func GetAppState() (*AppState, error) {
 	var err error
 
 	once.Do(func() {
-		instance = &AppState{
-			VisitedPages:   make(map[string]bool),
-			VisitedAssets:  make(map[string]bool),
-			Semaphore:      make(chan struct{}, 50),
-			Count:          0,
-			TempConfigFile: "progress_config.txt",
-		}
-		instance.ProcessedURLs.URLs = make(map[string]bool)
-		err = instance.ParseArgs()
+		instance = newAppstate()
+		err = instance.parseArgs()
 		err = instance.taskManager(err)
 	})
 

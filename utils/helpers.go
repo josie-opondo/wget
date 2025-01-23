@@ -209,3 +209,12 @@ func ResolveURL(base, rel string) string {
 	baseParts := strings.Split(base, "/")
 	return baseParts[0] + "//" + baseParts[2] + "/" + rel
 }
+
+
+func Validateurl(link string) error {
+	_, err := url.ParseRequestURI(link)
+	if err != nil {
+		return fmt.Errorf("invalid url:\n%v", err)
+	}
+	return nil
+}

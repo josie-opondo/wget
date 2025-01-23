@@ -19,7 +19,7 @@ func (app *AppState) singleDownloader(file, url, limit, directory string) error 
 
 	fileURL := url
 	startTime := time.Now()
-	toDisplay, err := utils.LoadShowProgressState(app.TempConfigFile)
+	toDisplay, err := utils.LoadShowProgressState(app.tempConfigFile)
 	if err != nil {
 		return err
 	}

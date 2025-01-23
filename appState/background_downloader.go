@@ -9,7 +9,7 @@ import (
 	"wget/utils"
 )
 
-func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) error {
+func (app *AppState) downloadInBackground(file, urlStr, rateLimit string) error {
 	// Parse the URL to derive the output name
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
@@ -42,7 +42,7 @@ func (app *AppState) DownloadInBackground(file, urlStr, rateLimit string) error 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("error starting download:\n%v", err)
 	}
-	if err := utils.SaveShowProgressState(app.TempConfigFile, false); err != nil {
+	if err := utils.SaveShowProgressState(app.tempConfigFile, false); err != nil {
 		return err
 	}
 

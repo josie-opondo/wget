@@ -1,47 +1,49 @@
 package appState
 
 import (
-	"io"
 	"sync"
-	"time"
 )
 
 // UrlArgs struct with exported fields (Uppercase names)
 type UrlArgs struct {
-	URL              string
-	File             string
-	RateLimit        string
-	Path             string
-	Sourcefile       string
-	WorkInBackground bool
-	Mirroring        bool
-	RejectFlag       string
-	ExcludeFlag      string
-	ConvertLinksFlag bool
-}
-
-type RateLimitedReader struct {
-	Reader     io.Reader
-	RateLimit  int64
-	Bucket     int64
-	LastFilled time.Time
+	url              string
+	file             string
+	rateLimit        string
+	path             string
+	sourceFile       string
+	workInBackground bool
+	mirroring        bool
+	rejectFlag       string
+	excludeFlag      string
+	convertLinksFlag bool
 }
 
 type ProcessedURLs struct {
 	sync.Mutex
-	URLs map[string]bool
+	urls map[string]bool
 }
 
 // AppState encapsulates global variables and synchronization primitives
 type AppState struct {
-	UrlArgs           UrlArgs
-	RateLimitedReader RateLimitedReader
-	ProcessedURLs     ProcessedURLs
-	VisitedPages      map[string]bool
-	VisitedAssets     map[string]bool
-	MuPages           sync.Mutex
-	MuAssets          sync.Mutex
-	Semaphore         chan struct{}
-	Count             int
-	TempConfigFile    string
+	urlArgs           UrlArgs
+	// rateLimitedReader RateLimitedReader
+	processedURLs     ProcessedURLs
+	visitedPages      map[string]bool
+	visitedAssets     map[string]bool
+	muPages           sync.Mutex
+	muAssets          sync.Mutex
+	semaphore         chan struct{}
+	count             int
+	tempConfigFile    string
+}
+
+func newAppstate() *AppState {
+	return &AppState{
+		visitedPages: make(map[string]bool),
+		visitedAssets: make(map[string]bool),
+		processedURLs: ProcessedURLs{
+			urls: make(map[string]bool),
+		},
+		tempConfigFile: "progress_config.txt",
+	}
 }

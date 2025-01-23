@@ -36,7 +36,7 @@ func TestDownloadInBackground(t *testing.T) {
 	rateLimit := "500k" // Example rate limit
 
 	// Run the function
-	err = app.DownloadInBackground(file, urlStr, rateLimit)
+	err = app.downloadInBackground(file, urlStr, rateLimit)
 
 	// Check if the error is nil (indicating success)
 	if err != nil {
@@ -58,7 +58,7 @@ func TestDownloadAndMirror(t *testing.T) {
 	pathRejects := "/ignore"
 
 	// Run the function
-	err = app.DownloadAndMirror(url, rejectTypes, convertLink, pathRejects)
+	err = app.downloadAndMirror(url, rejectTypes, convertLink, pathRejects)
 
 	// Check if the error is nil (indicating success)
 	if err != nil {

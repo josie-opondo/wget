@@ -12,7 +12,7 @@ import (
 	"wget/utils"
 )
 
-func (app *AppState) DownloadMultipleFiles(filePath, outputFile, limit, directory string) error {
+func (app *AppState) downloadMultipleFiles(filePath, outputFile, limit, directory string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("error opening file:\n%v", err)
